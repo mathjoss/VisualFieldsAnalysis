@@ -7,19 +7,19 @@ If you want more info and explanation, please read the article with the full pro
 Before using this program:
 - organize your files: gather the videofiles in a folder, the DLC output files in an other folder. 
 - complete a excel document with starting and ending time of the experiment, one sheet per animal (see example in example/example.xlsx)
-- write coherent name for your files: only the number of the animal must change between the files
+- write coherent name for your files: only the animal ID must change between the files
 
 
 *------------------*
 
 REQUIREMENTS
-Python (only >3 tested)  with pandas, matplotlib, cv2, numpy, tkinter, random, math functions
+Python (only >3 tested)  with pandas, matplotlib, cv2, numpy, xlrd
 
 
 *------------------*
 
 INSTALLATION
-1. Download all functions and files available on github from https://github.com/mathjoss/VF_analysis.git
+1. Download all functions and files available on github from https://github.com/mathjoss/VisualFieldsAnalysis.git
 
 2. Run main_coordinator.py 
 
@@ -30,7 +30,7 @@ INSTRUCTIONS FOR OPERATION
 
 1. Read more info from http://www.mousemotorlab.org/deeplabcut if you want to understand more about DeepLabCut and the output generated.
 
-2. Write inside an excel file (same format as the excel file animals_excel_sheet.xlsx) the columns information you need: Start (min) and Stop(min) required
+2. Write inside an excel file (same format as the excel file example.xlsx in Example folder) the columns information you need: ID, Start (min) and Stop(min) required (other columns optional)
 
 3. Add videos to a folder with same name format : for example, chick11.1, chick11.2, chick12.1 ... (avoid changing names like chick1, new_chick2)
 
