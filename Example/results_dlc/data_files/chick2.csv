@@ -1,0 +1,2 @@
+ID,sex,condition,trial,object,position_object,startingFrame,endingFrame,topLeftX,topLeftY,topRightX,topRightY,bottomLeftX,bottomLeftY,bottomRightX,bottomRightY,leftBorder,rightBorder
+2,male,example,,target,left,0,10789,185.0,259.0,1637.0,290.0,150.0,797.0,1649.0,801.0,168.0,1643.0
