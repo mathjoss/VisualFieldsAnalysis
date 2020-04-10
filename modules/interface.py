@@ -436,7 +436,7 @@ def error_excel_file(pathexcelfile):
     root_window.mainloop()
 
 
-def error_video(pathvideo, IDList):
+def error_video(pathvideo, ID):
     def quit_program():
         root_window.destroy()
 
