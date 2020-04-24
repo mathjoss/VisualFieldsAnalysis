@@ -1,0 +1,1003 @@
+---
+title: "Visual Fields Analysis"
+author: "Mathilde Josserand and Bastien Lemaire"
+date: "`r date()`"
+output:
+  html_document:
+    fig_caption: yes
+    highlight: textmate
+    theme: readable
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '6'
+  word_document: default
+subtitle: Data analysis and plots
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, # default code chunk options
+                      fig.align = "center", comment=NA, # default figure dimensions
+                      fig.path = "figures/", # save images to ./figures/
+                      dpi=72, dev="jpeg", # please set dpi=300 and comment out dev="jpeg" for high resolution images but very big resulting HTML document
+                      cache=TRUE, autodep=TRUE); # cache computations
+dir.create("./figures", showWarnings=FALSE); # figures are saved here
+```
+
+## Introduction
+
+Visual Field Analysis is an application which automatically quantify:
+
+ - left-right preference in eye-use
+ - animal activity
+ - animal location in an arena
+ 
+To use this application, please refer to *Accurate measuring of left and right eye-use in animals' behavioural lateralization studies using DeepLabCut*, Protocol part.
+
+This RMarkdown file aims to show some analysis that can be done with Visual Field Analysis output.
+
+During this analysis, we will use *VFA* for Visual Fields Analysis.
+
+Frames are automatically printed in a *figures* folder (no need to create a folder). 
+But if you want to print the pictures with a special format adapted to each figures, create a folder called "Plots" and set *print_pic = TRUE* above.
+
+<br/>
+
+## Data
+
+
+```{r pressure, echo=FALSE}
+# read packages
+library(tidyr)
+library(ggplot2)
+library(pander)
+library(dplyr)
+
+# do you want to print pictures with good format?
+print_pic = FALSE
+if( print_pic ) warning("With this option, you will create beautiful plots, but the html file won't have any plots! Knit this file with print_pic=TRUE to create pictures, and then run it again with print_pic = FALSE to get a nice html file.");
+
+
+# set path
+setwd("/home/mathilde/Documents/ACN_lab/VF_analysis/Plotting")
+
+# read file final
+chick1dlc <- read.table("chick1byFrame.csv", header=T, sep=",", quote='"', fill=TRUE) 
+chick1dlc_seconds <- read.table("chick1bySecond.csv", header=T, sep=",", quote='"', fill=TRUE) 
+chick1mc <- read.table("chick1_manualcoding.csv", header=T, sep=",", quote='"', fill=TRUE) 
+
+
+
+chick2 <- read.table("chick_2_dlc_mc.csv", header=T, sep=",", quote='"', fill=TRUE, row.names=1) 
+chick2byframe <- read.table("chick2byFrame.csv", header=T, sep=",", quote='"', fill=TRUE) 
+chick2bysecond <- read.table("chick2bySecond.csv", header=T, sep=",", quote='"', fill=TRUE, row.names=1) 
+
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color, 
+      x)
+  } else x
+}
+
+# add column frames
+chick1dlc$frames <- 1:nrow(chick1dlc)
+
+# add column seconds
+chick1dlc$seconds_full <- rep(1:30, each=30)[1:nrow(chick1dlc)]
+
+# add columns seconds (with decimals)
+chick1dlc$seconds <- chick1dlc$frames/30
+
+```
+
+
+We use the following input files:
+
+| Input file | Format      | Animal | Description |
+|------------|-------------|-------------|-------------|
+| `chick1byFrame.csv` | CSV file | Chick 1 | Output from *VFA* program, where frames have not been grouped by seconds   |
+| `chick1bySecond.csv` | CSV file | Chick 1 | Output from *VFA* program, where frames have been grouped by second |
+| `chick1_manualcoding.csv` | CSV file | Chick 1 |Manual coding for chick 1 eye use preference, for both top and bottom stimuli |
+| `chick_2_dlc_mc.csv` | CSV file |  Chick 2 | Manual coding and preference extracted from *VFA* output for the chick location in the arena |
+| `chick_2_dlc_mc.csv` | CSV file | Chick 2 | Output from *VFA* program, where frames have not been grouped by seconds |
+| `chick_2_dlc_mc.csv` | CSV file | Chick 2 | Output from *VFA* program, where frames have  been grouped by seconds |
+
+
+Let's visualize the first 6 rows for each file:
+
+<br/>
+
+
+`r colorize("Chick 1, by frame (VFA output):", "purple")`
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+pander(head(chick1dlc));
+```
+ 
+<br/>
+
+`r colorize("Chick 1, by seconds (VFA output):", "purple")`
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+pander(head(chick1dlc_seconds));
+```
+
+<br/>
+
+`r colorize("Chick 1, manual coding:", "purple")`
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+pander(head(chick1mc));
+```
+ 
+<br/>
+
+`r colorize("Chick 2, both manual coding and DLC:", "purple")`
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+pander(head(chick2));
+
+```
+ 
+<br/>
+
+## Laterality Index
+
+Before computing the laterality index, let's have a look to the mean of our columns of interests:
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+df_all_mean <- data.frame(frontaltop = c(mean(chick1dlc$frontaltop, na.rm=TRUE), mean(chick1dlc_seconds$frontaltop, na.rm=TRUE), mean(chick1mc$frontaltop, na.rm=TRUE)),
+                          lateralLefttop = c(mean(chick1dlc$lateralLefttop, na.rm=TRUE), mean(chick1dlc_seconds$lateralLefttop, na.rm=TRUE), mean(chick1mc$lateralLefttop, na.rm=TRUE)),
+                          lateralRighttop = c(mean(chick1dlc$lateralRighttop, na.rm=TRUE), mean(chick1dlc_seconds$lateralRighttop, na.rm=TRUE), mean(chick1mc$lateralRighttop, na.rm=TRUE)),
+                           LeftALLtop = c(mean(chick1dlc$LeftALLtop), mean(chick1dlc_seconds$LeftALLtop), mean(chick1mc$LeftALLtop)),
+                           RightALLtop = c(mean(chick1dlc$RightALLtop), mean(chick1dlc_seconds$RightALLtop), mean(chick1mc$RightALLtop)))
+
+df_all_mean <- df_all_mean*100
+rownames(df_all_mean)<- c("VFA_frames", "VFA_seconds", "Manual_coding")
+
+pander(df_all_mean)
+
+```
+
+The values represent the time spent (in % of the total time) looking at the stimulus with X visual fields.
+For example, in the dataset from VFA gathered by frames, the chick used its frontal view to look at the stimulus `r round(df_all_mean["VFA_frames", "frontaltop"],2)` % of the time.
+
+<br/>
+
+### Computation
+
+*Laterality Index* is computed with the following formula: 
+
+<br/>
+
+$\displaystyle \frac {number\;of\;frames\;spent\;looking\;with\;the\;right\;visual\;field}{number\;of\;frames\;spent\;looking with\;the\;left\;and\;right\;visual\;field}$
+
+<br/>
+
+A LI index higher than 50 indicates a preference for using the right visual field, whereas a LI index inferior to 50 indicates a preference for the use of the left visual field.
+
+Please note that we did not replace NA values, but we performed the mean with missing values.
+
+<br/>
+
+**For overall view (both lateral + frontal):**
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+
+chick1dlc$LI_overall <- (chick1dlc$RightALLtop)/(chick1dlc$RightALLtop + chick1dlc$LeftALLtop)*100
+chick1dlc_seconds$LI_overall <- (chick1dlc_seconds$RightALLtop)/(chick1dlc_seconds$RightALLtop + chick1dlc_seconds$LeftALLtop)*100
+chick1mc$LI_overall <- (chick1mc$RightALLtop)/(chick1mc$RightALLtop + chick1mc$LeftALLtop)*100
+
+#chick1dlc$LI_overall[is.na(chick1dlc$LI_overall)] <- 0
+#chick1dlc_seconds$LI_overall[is.na(chick1dlc_seconds$LI_overall)] <- 0
+#chick1mc$LI_overall[is.na(chick1mc$LI_overall)] <- 0
+
+```
+
+When considering the **overall** view, the laterality index is `r round(mean(chick1dlc$LI_overall),2)` % for the automatic coding by frames, `r round(mean(chick1dlc_seconds$LI_overall),2)` % for the automatic coding by seconds, and `r round(mean(chick1mc$LI_overall),2)` % for the manual coding.
+
+<br/>
+
+**For lateral view only**
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+chick1dlc$LI_lateral <- (chick1dlc$lateralRighttop)/(chick1dlc$lateralRighttop + chick1dlc$lateralLefttop)*100
+chick1dlc_seconds$LI_lateral <- (chick1dlc_seconds$lateralRighttop)/(chick1dlc_seconds$lateralRighttop + chick1dlc_seconds$lateralLefttop)*100
+chick1mc$LI_lateral <- (chick1mc$lateralRighttop)/(chick1mc$lateralRighttop + chick1mc$lateralLefttop)*100
+
+#chick1dlc$LI_lateral[is.na(chick1dlc$LI_lateral)] <- 50
+#chick1dlc_seconds$LI_lateral[is.na(chick1dlc_seconds$LI_lateral)] <- 50
+#chick1mc$LI_lateral[is.na(chick1mc$LI_lateral)] <- 50
+
+```
+
+When considering the **lateral** view, the laterality index is `r round(mean(chick1dlc$LI_lateral, na.rm=TRUE),2)` % for the automatic coding by frames, `r round(mean(chick1dlc_seconds$LI_lateral, na.rm=TRUE),2)` % for the automatic coding by seconds, and `r round(mean(chick1mc$LI_lateral, na.rm=TRUE),2)` % for the manual coding.
+
+<br/>
+
+**For frontal view only**
+
+Frontal view is not directly available in our files. We will compute it by substracting the *Overall* with the *Lateral*.
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+## For VFA output by frames:
+
+# substract overall and lateral 
+chick1dlc$only_frontal_right_top <- chick1dlc$RightALLtop - chick1dlc$lateralRighttop
+chick1dlc$only_frontal_left_top <- chick1dlc$LeftALLtop - chick1dlc$lateralLefttop
+# compute LI
+chick1dlc$LI_frontal <- (chick1dlc$only_frontal_right_top)/(chick1dlc$only_frontal_right_top + chick1dlc$only_frontal_left_top)*100
+
+## For VFA output by seconds:
+
+# substract overall and lateral 
+chick1dlc_seconds$only_frontal_right_top <- chick1dlc_seconds$RightALLtop - chick1dlc_seconds$lateralRighttop
+chick1dlc_seconds$only_frontal_left_top <- chick1dlc_seconds$LeftALLtop - chick1dlc_seconds$lateralLefttop
+# compute LI
+chick1dlc_seconds$LI_frontal <- (chick1dlc_seconds$only_frontal_right_top)/(chick1dlc_seconds$only_frontal_right_top + chick1dlc_seconds$only_frontal_left_top)*100
+
+## For manual coding:
+
+# substract overall and lateral 
+chick1mc$only_frontal_right_top <- chick1mc$RightALLtop - chick1mc$lateralRighttop
+chick1mc$only_frontal_left_top <- chick1mc$LeftALLtop - chick1mc$lateralLefttop
+# compute LI
+chick1mc$LI_frontal <- (chick1mc$only_frontal_right_top)/(chick1mc$only_frontal_right_top + chick1mc$only_frontal_left_top)*100
+
+#chick1dlc$LI_frontal[is.na(chick1dlc$LI_frontal)] <- 50
+#chick1dlc_seconds$LI_frontal[is.na(chick1dlc_seconds$LI_frontal)] <- 50
+#chick1mc$LI_frontal[is.na(chick1mc$LI_frontal)] <- 50
+
+
+```
+
+When considering the **frontal** view, the laterality index is `r round(mean(chick1dlc$LI_frontal, na.rm=TRUE),2)` % for the automatic coding by frames, `r round(mean(chick1dlc_seconds$LI_frontal, na.rm=TRUE),2)` % for the automatic coding by seconds, and `r round(mean(chick1mc$LI_frontal, na.rm=TRUE),2)` % for the manual coding.
+
+<br/>
+
+Let's gather those results into a single dataframe:
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+# gather in a dataframe the mean LI
+df_all_mean_LI <- data.frame(LI_overall = c(round(mean(chick1dlc$LI_overall),2), round(mean(chick1dlc_seconds$LI_overall),2), round(mean(chick1mc$LI_overall),2)), 
+                             LI_lateral= c(round(mean(chick1dlc$LI_lateral, na.rm=TRUE),2), round(mean(chick1dlc_seconds$LI_lateral, na.rm=TRUE),2), round(mean(chick1mc$LI_lateral, na.rm=TRUE),2)),
+                             LI_frontal=c(round(mean(chick1dlc$LI_frontal, na.rm=TRUE),2), round(mean(chick1dlc_seconds$LI_frontal, na.rm=TRUE),2), round(mean(chick1mc$LI_frontal, na.rm=TRUE),2)))
+
+rownames(df_all_mean_LI)<- c("VFA_frames", "VFA_seconds", "Manual_coding")
+
+pander(df_all_mean_LI)
+```
+
+
+<br/>
+
+### Data format change
+
+We changed data format to obtain 3 different dataframes for each file: 
+
+*VFA output, by frames:*
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+
+# Create dataframe with good format - DLC WITH FRAMES
+new_df_dlc_short <- data.frame(overall = chick1dlc$LI_overall, lateral = chick1dlc$LI_lateral, frontal=chick1dlc$LI_frontal)
+new_df_dlc_short$seconds <- as.numeric(rownames(new_df_dlc_short))/30
+new_df_dlc <- gather(new_df_dlc_short, condition, LI, overall:frontal, factor_key=TRUE)
+new_df_dlc$coding_type <- as.factor("automatic_frame")
+pander(summary(new_df_dlc))
+```
+
+<br/>
+
+*VFA output, by seconds:*
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+# Create dataframe with good format - DLC WITH SECONDS
+new_df_dlc_2_short <- data.frame(overall = chick1dlc_seconds$LI_overall, lateral = chick1dlc_seconds$LI_lateral, frontal=chick1dlc_seconds$LI_frontal)
+new_df_dlc_2_short$seconds <- as.numeric(rownames(new_df_dlc_2_short))
+new_df_dlc_2 <- gather(new_df_dlc_2_short, condition, LI, overall:frontal, factor_key=TRUE)
+new_df_dlc_2$coding_type <- as.factor("automatic_seconds")
+pander(summary(new_df_dlc_2))
+```
+
+<br/>
+
+*Manual coding*
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+# Create dataframe with good format - MC
+new_df_mc_short <- data.frame(overall = chick1mc$LI_overall, lateral = chick1mc$LI_lateral, frontal=chick1mc$LI_frontal)
+new_df_mc_short$seconds <- as.numeric(rownames(new_df_mc_short))
+new_df_mc <- gather(new_df_mc_short, condition, LI, overall:frontal, factor_key=TRUE)
+new_df_mc$coding_type <- as.factor("manual")
+pander(summary(new_df_mc))
+```
+
+<br/>
+
+### Plots
+
+<br/>
+
+#### VFA - frames
+
+```{r LI frames, echo=FALSE, message=FALSE, warning=FALSE}
+
+if (print_pic==TRUE){jpeg('Plots/LIAutomaticFrames.jpg',width=7,height=7,units="in",res=300)}
+ggplot(new_df_dlc, aes(x=condition, y=LI, fill=condition)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black")+
+  ylim(0, 100) + 
+  theme(legend.position = "none") +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(title= "Laterality Index computed by Visual Field Analysis on every frames", y=" Left <-- Laterality Index [%] --> Right", x="")
+if (print_pic==TRUE){dev.off()}
+
+```
+
+```{r LI frames evolution time overall, echo=FALSE, message=FALSE, warning=FALSE}
+
+if (print_pic==TRUE){jpeg('Plots/LI_EvolutionTime_overall_frames.jpg',width=7,height=4,units="in",res=300)}
+ggplot(new_df_dlc[new_df_dlc$condition=="overall",], aes(x=seconds, y=LI))+
+   geom_point(size=1, alpha = 0.3)+
+   #geom_line(color="tomato", size=0.5) +
+   #geom_smooth()+
+   theme(legend.position = "none") +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   labs(y="LI", x="time in seconds", title="Chick 1 LI through time - overall (precision: frames)")
+if (print_pic==TRUE){dev.off()}
+```
+
+
+```{r LI frames evolution time frontlat, echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/LI_EvolutionTime_frontlat_frames.jpg',width=7,height=4,units="in",res=300)}
+ggplot(new_df_dlc[new_df_dlc$condition=="frontal" | new_df_dlc$condition=="lateral",], aes(x=seconds, y=LI, color=condition))+
+   geom_point(size=1, alpha=0.3)+
+   #geom_line( size=0.5) +
+   #geom_smooth()+
+   theme(legend.position = "none") +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   labs(y="LI", x="time in seconds", title="Chick 1 LI through time - lateral and frontal (precision: frames)")
+if (print_pic==TRUE){dev.off()}
+```
+
+<br/>
+
+#### VFA - seconds
+
+Here, we do a *very* small change in the data: we replace value above 99 by 100. The change is tiny, but it makes the plot look way better.
+
+```{r LI seconds, echo=FALSE, message=FALSE, warning=FALSE}
+new_df_dlc_2$LI[new_df_dlc_2$LI>=99] <- 100 # not a big difference, but really make the plot look better
+
+if (print_pic==TRUE){jpeg('Plots/LIAutomaticSeconds.jpg',width=7,height=7,units="in",res=300)}
+ggplot(new_df_dlc_2, aes(x=condition, y=LI, fill=condition, color=condition)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=FALSE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black")+
+  ylim(-10, 110) + 
+  theme(legend.position = "none") +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(title= "Laterality Index computed by Visual Field Analysis per seconds", y=" Left <-- Laterality Index [%] --> Right", x="")+
+  geom_jitter(position=position_jitter(0.3))
+if (print_pic==TRUE){dev.off()}
+
+```
+
+```{r LI seconds evolution time overall, echo=FALSE, message=FALSE, warning=FALSE}
+
+if (print_pic==TRUE){jpeg('Plots/LI_EvolutionTime_overall_seconds.jpg',width=7,height=4,units="in",res=300)}
+ggplot(new_df_dlc_2[new_df_dlc_2$condition=="overall",], aes(x=seconds, y=LI))+
+   geom_point(size=1, alpha = 0.5)+
+   geom_line(color="darkgreen", size=0.5, alpha=0.5) +
+   #geom_smooth()+
+   theme(legend.position = "none") +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   labs(y="LI", x="time in seconds", title="Chick 1 LI through time - overall (precision: seconds)")
+if (print_pic==TRUE){dev.off()}
+```
+
+
+```{r LI seconds evolution time frontlat, echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/LI_EvolutionTime_frontlat_seconds.jpg',width=7,height=4,units="in",res=300)}
+ggplot(new_df_dlc_2[new_df_dlc_2$condition=="frontal" | new_df_dlc_2$condition=="lateral",], aes(x=seconds, y=LI, color=condition))+
+   geom_point(size=1.5, alpha=0.5)+
+   geom_line( size=0.8, alpha=0.5) +
+   #geom_smooth()+
+   theme(legend.position = "none") +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   labs(y="LI", x="time in seconds", title="Chick 1 LI through time - lateral and frontal(precision: seconds)")
+if (print_pic==TRUE){dev.off()}
+```
+
+<br/>
+
+#### Manual coding
+
+Without datapoints inside: (`jitter` function)
+```{r MC no jitter , echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/LIManual.jpg',width=7,height=7,units="in",res=300)}
+ggplot(new_df_mc, aes(x=condition, y=LI, fill=condition)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black")+
+  theme(legend.position = "none") +
+  ylim(0, 100) + 
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(title= "Laterality Index computed manually",y=" Left <-- Laterality Index [%] --> Right", x="")
+if (print_pic==TRUE){dev.off()}
+
+```
+
+
+<br/>
+
+With datapoints inside: (`jitter` function)
+
+```{r MC , echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/LIManual2.jpg',width=7,height=7,units="in",res=300)}
+ggplot(new_df_mc, aes(x=condition, y=LI, fill=condition, color=condition)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=FALSE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black")+
+  ylim(-10, 110) + 
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  theme(legend.position = "none") +
+  labs(title= "Laterality Index computed manually", y=" Left <-- Laterality Index [%] --> Right", x="")+
+  geom_jitter(position=position_jitter(0.3))
+if (print_pic==TRUE){dev.off()}
+
+```
+
+```{r LI mc evolution time overall, echo=FALSE, message=FALSE, warning=FALSE}
+
+if (print_pic==TRUE){jpeg('Plots/LI_EvolutionTime_overall_manualcoding.jpg',width=7,height=4,units="in",res=300)}
+ggplot(new_df_mc[new_df_mc$condition=="overall",], aes(x=seconds, y=LI))+
+   geom_point(size=1, alpha = 0.5)+
+   geom_line(color="darkgreen", size=0.5, alpha=0.5) +
+   #geom_smooth()+
+   theme(legend.position = "none") +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   labs(y="LI", x="time in seconds", title="Chick 1 LI through time - overall (precision: seconds) with manual coding")
+if (print_pic==TRUE){dev.off()}
+```
+
+
+```{r LI mc evolution time frontlat, echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/LI_EvolutionTime_latfront_manualcoding.jpg',width=7,height=4,units="in",res=300)}
+ggplot(new_df_mc[new_df_mc$condition=="frontal" | new_df_mc$condition=="lateral",], aes(x=seconds, y=LI, color=condition))+
+   geom_point(size=1.5, alpha=0.5)+
+   geom_line( size=0.8, alpha=0.5) +
+   #geom_smooth()+
+   theme(legend.position = "none") +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   labs(y="LI", x="time in seconds", title="Chick 1 LI through time - lateral and frontal (precision: seconds) with manual coding")
+if (print_pic==TRUE){dev.off()}
+```
+<br/>
+
+#### All together
+
+In order to plot all these information together, we gather the previous dataframes into one single dataframe:
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# combine those dataframe
+df_all <- rbind(new_df_dlc, new_df_dlc_2, new_df_mc)
+pander(summary(df_all))
+
+# same table without NA (to compute mean)
+df_all_nona <- df_all[complete.cases(df_all), ]
+
+```
+
+<br/>
+
+*Manual coding versus VFA seconds output versus VFA frames output*:
+
+
+```{r LI ALL , echo=FALSE, message=FALSE, warning=FALSE}
+# summarize to get mean
+errbar_lims <- group_by(df_all_nona, condition, coding_type) %>% 
+  summarize(mean=mean(LI), se=sd(LI)/sqrt(n()), 
+            upper=mean+(2*se), lower=mean-(2*se))
+
+if (print_pic==TRUE){jpeg('Plots/LIall.jpg',width=8,height=6,units="in",res=300)}
+ggplot(df_all, aes(x=condition, y=LI, fill=coding_type, color=coding_type)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.2, color="black") +
+  geom_point(data=errbar_lims, aes(x=condition, y=mean, color=coding_type), stat="identity", position=position_dodge(width=0.9), size=3) +
+  ylim(0, 100) + 
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(title= "Comparaison of Laterality Index computed automatically (frames or seconds) and manually", y=" Left <--   Laterality Index [%]  --> Right", x="")
+  #geom_jitter(
+    #position=position_jitterdodge(jitter.width = 0.2, jitter.height = 0.3,dodge.width = 0.9,seed = NA), 
+    #size=0.7)
+if (print_pic==TRUE){dev.off()}
+
+```
+
+<br/>
+
+*Manual coding versus VFA seconds output*:
+
+Without datapoints inside: (`jitter` function)
+
+```{r LI MC vs Seconds no jitter , echo=FALSE, message=FALSE, warning=FALSE}
+# summarize to get mean
+errbar_lims <- group_by(df_all_nona[df_all_nona$coding_type=="manual" | df_all_nona$coding_type=="automatic_seconds",], condition, coding_type) %>% 
+  summarize(mean=mean(LI), se=sd(LI)/sqrt(n()), 
+            upper=mean+(2*se), lower=mean-(2*se))
+
+# Plot
+if (print_pic==TRUE){jpeg('Plots/LIall_just_seconds.jpg',width=8,height=6,units="in",res=300)}
+ggplot(df_all[df_all$coding_type=="manual" | df_all$coding_type=="automatic_seconds",], aes(x=condition, y=LI, fill=coding_type)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.2, color="black") +
+  geom_point(data=errbar_lims, aes(x=condition, y=mean), stat="identity", position=position_dodge(width=0.9), size=3) +
+  ylim(0, 100) + 
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) +
+  labs(title= "Comparaison of Laterality Index computed automatically and manually", y=" Right <--   Laterality Index [%]  --> Left", x="") +
+  scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) 
+if (print_pic==TRUE){dev.off()}
+
+
+```
+
+<br/>
+
+With datapoints inside: (`jitter` function)
+
+```{r LI MC vs Seconds jitter , echo=FALSE, message=FALSE, warning=FALSE}
+# summarize to get mean
+errbar_lims <- group_by(df_all_nona[df_all_nona$coding_type=="manual" | df_all_nona$coding_type=="automatic_seconds",], condition, coding_type) %>% 
+  summarize(mean=mean(LI), se=sd(LI)/sqrt(n()), 
+            upper=mean+(2*se), lower=mean-(2*se))
+
+# Plot
+if (print_pic==TRUE){jpeg('Plots/LIall_just_seconds_jitter.jpg',width=8,height=6,units="in",res=300)}
+ggplot(df_all[df_all$coding_type=="manual" | df_all$coding_type=="automatic_seconds",], aes(x=condition, y=LI, fill=coding_type, color=coding_type)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.2, color="black") +
+  geom_point(data=errbar_lims, aes(x=condition, y=mean), stat="identity", position=position_dodge(width=0.9), size=3) +
+  ylim(0, 100) + 
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  guides(colour=FALSE) +
+  scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) +
+  labs(title= "Comparaison of Laterality Index computed automatically and manually", y=" Right <--   Laterality Index [%]  --> Left", x="") +
+  geom_jitter(
+  position=position_jitterdodge(jitter.width = 0.3, jitter.height = 0.4,dodge.width = 0.9,seed = NA), 
+  size=1) 
+if (print_pic==TRUE){dev.off()}
+
+```
+
+
+<br/>
+
+*Manual coding versus VFA frames output*:
+
+Without datapoints inside: (`jitter` function)
+
+```{r LI MC vs Frames no jitter , echo=FALSE, message=FALSE, warning=FALSE}
+# summarize to get mean
+errbar_lims <- group_by(df_all[df_all$coding_type=="manual" | df_all$coding_type=="automatic_frame",], condition, coding_type) %>% 
+  summarize(mean=mean(LI), se=sd(LI)/sqrt(n()), 
+            upper=mean+(2*se), lower=mean-(2*se))
+
+# Plot
+if (print_pic==TRUE){jpeg('Plots/LIall_just_frames.jpg',width=8,height=6,units="in",res=300)}
+ggplot(df_all[df_all$coding_type=="manual" | df_all$coding_type=="automatic_frame",], aes(x=condition, y=LI, fill=coding_type)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.2, color="black") +
+  geom_point(data=errbar_lims, aes(x=condition, y=mean), stat="identity", position=position_dodge(width=0.9), size=3) +
+  ylim(0, 100) + 
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) +
+  labs(title= "Comparaison of Laterality Index computed automatically and manually", y=" Right <--   Laterality Index [%]  --> Left", x="")+
+#geom_jitter(
+#position=position_jitterdodge(jitter.width = 0.2, jitter.height = 0.3,dodge.width = 0.9,seed = NA), 
+#size=0.7) 
+scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) 
+if (print_pic==TRUE){dev.off()}
+
+
+```
+
+<br/>
+
+With datapoints inside: (`jitter` function)
+
+```{r LI MC vs Frames jitter , echo=FALSE, message=FALSE, warning=FALSE}
+# summarize to get mean
+errbar_lims <- group_by(df_all_nona[df_all_nona$coding_type=="manual" | df_all_nona$coding_type=="automatic_frame",], condition, coding_type) %>% 
+  summarize(mean=mean(LI), se=sd(LI)/sqrt(n()), 
+            upper=mean+(2*se), lower=mean-(2*se))
+
+# Plot
+if (print_pic==TRUE){jpeg('Plots/LIall_just_frames_jitter.jpg',width=8,height=6,units="in",res=300)}
+ggplot(df_all[df_all$coding_type=="manual" | df_all$coding_type=="automatic_frame",], aes(x=condition, y=LI, fill=coding_type)) + 
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.2, color="black") +
+  geom_point(data=errbar_lims, aes(x=condition, y=mean), stat="identity", position=position_dodge(width=0.9), size=3) +
+  ylim(0, 100) + 
+  theme_bw() +
+  guides(colour=FALSE) +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) +
+  labs(title= "Comparaison of Laterality Index computed automatically and manually", y=" Right <--   Laterality Index [%]  --> Left", x="") +
+  geom_jitter(
+  position=position_jitterdodge(jitter.width = 0.3, jitter.height = 0.4,dodge.width = 0.9,seed = NA), 
+  size=1) 
+if (print_pic==TRUE){dev.off()}
+
+```
+
+<br/>
+
+#### Error rate
+
+By error rate, we mean the absolute difference between manual coding and VFA output.
+
+```{r error rate , echo=FALSE, message=FALSE, warning=FALSE}
+error <- data.frame(overall= c(rep(NA, nrow(chick1mc))))
+error$overall <- abs(chick1mc$LI_overall - chick1dlc_seconds$LI_overall)
+error$lateral <- abs(chick1mc$LI_lateral - chick1dlc_seconds$LI_lateral)
+error$frontal <- abs(chick1mc$LI_frontal - chick1dlc_seconds$LI_frontal)
+error <- gather(error, condition, error_rate, overall:frontal, factor_key=TRUE)
+
+if (print_pic==TRUE){jpeg('Plots/ErrorRate.jpg',width=10,height=7,units="in",res=300)}
+ggplot(data=error, aes(x=condition, y =error_rate, fill=condition))+
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black")+
+  theme(legend.position = "none") +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(x="", y="Error rate in %", title= "Error rate made with manual coding")
+if (print_pic==TRUE){dev.off()}
+
+ggplot(data=error, aes(x=condition, y =error_rate, fill=condition), alpha=0.5)+
+  geom_boxplot() +
+  theme_bw() 
+
+```
+
+<br/>
+
+## Lateral/Frontal index
+
+The same way as we computed LI index, we will compute an index which assess the preference for using the frontal or lateral view. We used the following formula:
+
+<br/>
+
+$\displaystyle \frac {number\;of\;frames\;spent\;looking\;with\;the\;lateral\;visual\;field}{number\;of\;frames\;spent\;looking with\;the\;lateral\;and\;frontal\;visual\;field}$
+
+<br/>
+
+A LI index higher than 50 indicates a preference for using the lateral visual field, whereas a LI index inferior to 50 indicates a preference for the use of the frontal visual field.
+
+<br/>
+
+#### Index computation
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+# For VFA output - frames
+chick1dlc$all_lateral <- chick1dlc$lateralLefttop + chick1dlc$lateralRighttop
+chick1dlc$frontlat_index <- (chick1dlc$all_lateral)/(chick1dlc$frontaltop + chick1dlc$all_lateral)*100
+
+# For VFA output - seconds
+chick1dlc_seconds$all_lateral <- chick1dlc_seconds$lateralLefttop + chick1dlc_seconds$lateralRighttop
+chick1dlc_seconds$frontlat_index <- (chick1dlc_seconds$all_lateral)/(chick1dlc_seconds$frontaltop + chick1dlc_seconds$all_lateral)*100
+
+# For manual coding
+chick1mc$all_lateral <- chick1mc$lateralLefttop + chick1mc$lateralRighttop
+chick1mc$frontlat_index <- (chick1mc$all_lateral)/(chick1mc$frontaltop + chick1mc$all_lateral)*100
+
+chick1dlc$coding_type <- "automatic_frames"
+chick1dlc_seconds$coding_type <- "automatic_seconds"
+chick1mc$coding_type <- "manual"
+
+dfdlc_frontlat <- data.frame(index=chick1dlc$frontlat_index, coding_type=chick1dlc$coding_type)
+dfdlc_frontlat_sec <- data.frame(index=chick1dlc_seconds$frontlat_index, coding_type=chick1dlc_seconds$coding_type)
+dfmc_frontlat <- data.frame(index=chick1mc$frontlat_index, coding_type=chick1mc$coding_type)
+
+df_all_frontlat <- rbind(dfdlc_frontlat, dfdlc_frontlat_sec, dfmc_frontlat)
+
+```
+
+For *VFA* output by frames, the frontal/lateral index is  `r round(mean(chick1dlc$frontlat_index, na.rm=TRUE),2)` %, which indicate a preference for the lateral visual field.
+
+For *VFA* output by frames, the frontal/lateral index is  `r round(mean(chick1dlc_seconds$frontlat_index, na.rm=TRUE),2)` %, which indicate a preference for the lateral visual field.
+
+For *VFA* output by frames, the frontal/lateral index is  `r round(mean(chick1mc$frontlat_index, na.rm=TRUE),2)` %, which indicate a preference for the lateral visual field.
+
+<br/>
+
+#### Plots
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/FrontalLateralPreferences.jpg',width=7,height=7,units="in",res=300)}
+ggplot(data=df_all_frontlat, aes(x=coding_type, y =index, fill=coding_type))+
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black") +
+  theme(legend.position = "none") +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks=c("automatic_frames","automatic_seconds","manual"),
+                   labels=c("automatic (frames)", "automatic (seconds)", "manual")) +
+  #scale_x_discrete(breaks=c("automatic (frames)", "automatic (seconds)", "manual"))
+  labs(title= "Index of preference for frontal or lateral view", x="", y="Frontal <--    Preference [%]     --> Lateral")
+if (print_pic==TRUE){dev.off()}
+
+```
+
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+#jpeg('Plots/FrontalLateralPreferences_seconds.jpg')
+if (print_pic==TRUE){jpeg('Plots/FrontalLateralPreferences_seconds.jpg',width=7,height=7,units="in",res=300)}
+#bitmap("Plots/FrontalLateralPreferences_seconds.tiff", height = 4, width = 4, units = 'in', type="tifflzw", res=300)
+
+ggplot(data=df_all_frontlat[df_all_frontlat$coding_type=="automatic_seconds" | df_all_frontlat$coding_type=="manual",], aes(x=coding_type, y =index, fill=coding_type))+
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black") +
+  theme(legend.position = "none") +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks=c("automatic_seconds","manual"),
+                   labels=c("automatic", "manual")) +
+  #scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) 
+  labs(title= "Index of preference for frontal or lateral view - seconds", x="", y="Frontal <--    Preference [%]    --> Lateral")
+if (print_pic==TRUE){dev.off()}
+#par(mfrow = c(1,1))
+
+```
+
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/FrontalLateralPreferences_frames.jpg',width=7,height=7,units="in",res=300)}
+ggplot(data=df_all_frontlat[df_all_frontlat$coding_type=="automatic_frames" | df_all_frontlat$coding_type=="manual",], aes(x=coding_type, y =index, fill=coding_type))+
+  geom_hline(yintercept = 50, color="grey") +
+  geom_violin(trim=TRUE, alpha=0.5, color="black") +
+  stat_summary(fun=mean, geom="point", shape=18,
+               size=4, color="black") +
+  theme(legend.position = "none") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  scale_x_discrete(breaks=c("automatic_frames","manual"),
+                   labels=c("automatic", "manual")) +
+  #scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) 
+  labs(title= "Index of preference for frontal or lateral view - frames", x="", y="Frontal <--    Preference [%]    --> Lateral")
+if (print_pic==TRUE){dev.off()}
+
+```
+
+<br/>
+
+## Movements
+
+#### Chick 1 head movements
+
+##### Precision: frames
+
+With dots:
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+chick1dlc$seconds <- chick1dlc$frames/30
+
+# Plot with geom point
+if (print_pic==TRUE){jpeg('Plots/DM_Dots_Chick1_Frames.jpg',width=7,height=4,units="in",res=300)}
+ggplot(chick1dlc, aes(x=seconds, y=distanceMoved, color=distanceMoved))+
+  geom_point()+
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(title="Chick activity 1 (precision: frames)")
+if (print_pic==TRUE){dev.off()}
+```
+
+With lines:
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+spline.frames <- as.data.frame(spline(chick1dlc$seconds, chick1dlc$distanceMoved))
+colnames(spline.frames) <- c("seconds", "distance_moved")
+
+if (print_pic==TRUE){jpeg('Plots/DM_Areas_Chick1_Frames.jpg',width=7,height=4,units="in",res=300)}
+ggplot(spline.frames, aes(x=seconds, y=distance_moved))+
+   geom_line( color="tomato")+
+   theme(legend.position = "none") +
+   geom_area(fill="tomato", color="tomato") +
+   #geom_point(data=chick1dlc, aes(x=seconds, y=distanceMoved), color="darkred", size=0.5)+
+   ylim(0,10) +
+   theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+   scale_x_continuous(breaks=(c(0, 5, 10, 15, 20, 25, 30))) +
+   labs(y="distance moved in pixel", x="time in seconds", title="Chick 1 activity (precision: frames)")
+if (print_pic==TRUE){dev.off()}
+```
+
+##### Precision: seconds
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/DM_Areas_Chick1_Seconds.jpg',width=7,height=4,units="in",res=300)}
+spline.d <- as.data.frame(spline(chick1dlc_seconds$seconds, chick1dlc_seconds$distanceMoved))
+ggplot(spline.d, aes(x=x, y=y)) + 
+  geom_line(data = spline.d, aes(x = x, y = y))+
+  geom_area(fill="tomato", color="black", alpha=0.5) +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  geom_point(data=chick1dlc_seconds, aes(x=seconds, y = distanceMoved)) +
+  theme_bw() +
+  scale_x_continuous(breaks=(c(0, 5, 10, 15, 20, 25, 30))) +
+  labs(y="distance moved in pixel", x="time in seconds", title="Chick 1 activity (precision: seconds)")
+if (print_pic==TRUE){dev.off()}
+```
+
+
+#### Chick 2 head movements
+
+##### Precision: frames
+
+With dots:
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+# add column frames
+chick2byframe$frames <- 1:nrow(chick2byframe)
+
+# add column seconds
+chick2byframe$seconds_full <- rep(1:30, each=30)[1:nrow(chick2byframe)]
+
+# add columns seconds (with decimals)
+chick2byframe$seconds <- chick2byframe$frames/30
+
+# Plot with geom point
+if (print_pic==TRUE){jpeg('Plots/DM_Dots_Chick2_Frames.jpg',width=7,height=4,units="in",res=300)}
+ggplot(chick2byframe, aes(x=seconds, y=distanceMoved, color=distanceMoved))+
+  geom_point()+
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  theme(legend.position = "none") +
+  labs(title="Chick activity 2 (precision: frames)")+
+  theme_bw() 
+if (print_pic==TRUE){dev.off()}
+```
+
+With lines:
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+spline.frames <- as.data.frame(spline(chick2byframe$seconds, chick2byframe$distanceMoved))
+colnames(spline.frames) <- c("seconds", "distance_moved")
+
+if (print_pic==TRUE){jpeg('Plots/DM_Areas_Chick2_Frames.jpg',width=7,height=4,units="in",res=300)}
+ggplot(chick2byframe, aes(x=seconds, y=distanceMoved))+
+  geom_line( color="tomato")+
+  theme(legend.position = "none") +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  theme_bw() +
+  geom_area(fill="tomato", color="tomato") +
+  #geom_point(data=chick2byframe, aes(x=seconds, y=distanceMoved), color="darkred", size=0.5)+
+  #scale_x_continuous(breaks=(c(0, 5, 10, 15, 20, 25, 30))) +
+  labs(y="distance moved in pixel", x="time in seconds", title="Chick 2 activity (precision: frames)")
+if (print_pic==TRUE){dev.off()}
+```
+
+##### Precision: seconds
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+if (print_pic==TRUE){jpeg('Plots/DM_Areas_Chick2_Seconds.jpg',width=7,height=4,units="in",res=300)}
+chick2bysecond$seconds <- 1:nrow(chick2bysecond)
+spline.d <- as.data.frame(spline(chick2bysecond$seconds, chick2bysecond$distanceMoved))
+ggplot(spline.d, aes(x=x, y=y)) + 
+  geom_line(data = spline.d, aes(x = x, y = y), size=0.1, color='tomato')+
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  geom_area(fill="tomato", color="tomato", alpha=0.5) +
+  #geom_point(data=chick2bysecond, aes(x=seconds, y = distanceMoved), size=0.5) +
+  #scale_x_continuous(breaks=(c(0, 5, 10, 15, 20, 25, 30))) +
+  labs(y="distance moved in pixel", x="time in seconds", title="Chick 2 activity (precision: seconds)")
+if (print_pic==TRUE){dev.off()}
+```
+
+<br/>
+
+## Location in the arena
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+# change format
+areas_chick2 <- gather(chick2, areas, time_spent, LEFTCLOSE:RIGHTCLOSE, factor_key=TRUE)
+areas_chick2$time_spent <- areas_chick2$time_spent*100
+areas_chick2$condition <- rep(c("dlc", "manual_coding"),5) 
+
+# plot
+if (print_pic==TRUE){jpeg('Plots/AreasChick2.jpg',width=7,height=7,units="in",res=300)}
+ggplot(areas_chick2, aes(x=areas, y=time_spent, fill=condition)) + 
+  geom_bar(stat="identity", position= position_dodge(), alpha=0.5) +
+  labs(x="", y="% of time spent", title="Mean time spent in the different areas" )+
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  #scale_fill_manual(values = c("magenta4", "orange")) +
+  scale_fill_discrete(name = "condition", labels = c("automatic", "manual")) 
+  #scale_x_discrete(breaks=c("left close", "left", "center", "right", "right close"))
+if (print_pic==TRUE){dev.off() }
+
+```
+
+With manual coding, we only coded the total amount of time spent in each areas. The *VFA* output provides additional information concerning the chick: we know at what time it changes its area:
+
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
+locationchange <- data.frame(seconds = chick2bysecond$seconds, LEFTCLOSE = chick2bysecond$LEFTCLOSE, LEFT = chick2bysecond$LEFT, CENTER = chick2bysecond$CENTER, RIGHT = chick2bysecond$RIGHT, RIGHTCLOSE = chick2bysecond$RIGHTCLOSE)
+
+locationchange <- gather(locationchange, location, timespent, LEFTCLOSE:RIGHTCLOSE, factor_key=TRUE)
+locationchange <- locationchange[locationchange$timespent>0.95,]
+
+
+if (print_pic==TRUE){jpeg('Plots/Location_Time_Chick2_Seconds.jpg',width=8,height=4,units="in",res=300)}
+ggplot(locationchange, aes(x=seconds, y=location, color=location, group=1)) + 
+  #geom_line(size=0.5, color='tomato')+
+  geom_point()+
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank()) +
+  theme(panel.grid.major.y = element_blank()) +
+  guides(color=FALSE) +
+  labs(x="time in seconds", title="Chick 2 location across time")
+  #geom_area(fill="tomato", color="tomato", alpha=0.5) +
+  #geom_point(data=chick2bysecond, aes(x=seconds, y = distanceMoved), size=0.5) +
+  #scale_x_continuous(breaks=(c(0, 5, 10, 15, 20, 25, 30))) +
+if (print_pic==TRUE){dev.off()}
+```
