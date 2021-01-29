@@ -325,19 +325,20 @@ def create_visual_fields(txtFile, final4, frontalangle, lateralangle, cap, numbf
     
     #cv2.destroyWindow('Random_pictures')  
      
-    # if group by seconds, divide the results by the framerate    
-    finalgood['frontalleft'] = finalgood['frontalleft'] / numbframes
-    finalgood['blindleft']  = finalgood['blindleft']/ numbframes
-    finalgood['lateralLeftleft']  =  finalgood['lateralLeftleft']/ numbframes
-    finalgood['lateralRightleft']  = finalgood['lateralRightleft'] / numbframes
-    finalgood['LeftALLleft']  = finalgood['LeftALLleft']/ numbframes
-    finalgood['RightALLleft']  = finalgood['RightALLleft'] / numbframes
-    finalgood['frontalright'] = finalgood['frontalright']/ numbframes
-    finalgood['blindright']  = finalgood['blindright']/ numbframes
-    finalgood['lateralLeftright']  = finalgood['lateralLeftright']/ numbframes
-    finalgood['lateralRightright']  = finalgood['lateralRightright']/ numbframes
-    finalgood['LeftALLright']  = finalgood['LeftALLright']/ numbframes
-    finalgood['RightALLright']  = finalgood['RightALLright']/ numbframes
+    # if group by seconds, divide the results by the framerate 
+    if numbframes != 1 :
+        finalgood['frontalleft'] = finalgood['frontalleft'] / numbframes
+        finalgood['blindleft']  = finalgood['blindleft']/ numbframes
+        finalgood['lateralLeftleft']  =  finalgood['lateralLeftleft']/ numbframes
+        finalgood['lateralRightleft']  = finalgood['lateralRightleft'] / numbframes
+        finalgood['LeftALLleft']  = finalgood['LeftALLleft']/ numbframes
+        finalgood['RightALLleft']  = finalgood['RightALLleft'] / numbframes
+        finalgood['frontalright'] = finalgood['frontalright']/ numbframes
+        finalgood['blindright']  = finalgood['blindright']/ numbframes
+        finalgood['lateralLeftright']  = finalgood['lateralLeftright']/ numbframes
+        finalgood['lateralRightright']  = finalgood['lateralRightright']/ numbframes
+        finalgood['LeftALLright']  = finalgood['LeftALLright']/ numbframes
+        finalgood['RightALLright']  = finalgood['RightALLright']/ numbframes
     
     # aks user if he wants to continue
     resp = interface.visualize_fields_q3()
