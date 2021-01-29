@@ -338,19 +338,19 @@ def create_visual_fields(txtFile, final4, frontalangle, lateralangle, cap, numbf
             
     #cv2.destroyWindow('Random_pictures')     
     # if group by seconds, divide the results by the framerate    
-  
-    finalgood['frontalbottom'] = finalgood['frontalbottom'] / numbframes
-    finalgood['blindbottom']  = finalgood['blindbottom']/ numbframes
-    finalgood['lateralLeftbottom']  =  finalgood['lateralLeftbottom']/ numbframes
-    finalgood['lateralRightbottom']  = finalgood['lateralRightbottom'] / numbframes
-    finalgood['LeftALLbottom']  = finalgood['LeftALLbottom']/ numbframes
-    finalgood['RightALLbottom']  = finalgood['RightALLbottom'] / numbframes
-    finalgood['frontaltop'] = finalgood['frontaltop']/ numbframes
-    finalgood['blindtop']  = finalgood['blindtop']/ numbframes
-    finalgood['lateralLefttop']  = finalgood['lateralLefttop']/ numbframes
-    finalgood['lateralRighttop']  = finalgood['lateralRighttop']/ numbframes
-    finalgood['LeftALLtop']  = finalgood['LeftALLtop']/ numbframes
-    finalgood['RightALLtop']  = finalgood['RightALLtop']/ numbframes
+    if numbframes != 1 :
+        finalgood['frontalbottom'] = finalgood['frontalbottom'] / numbframes
+        finalgood['blindbottom']  = finalgood['blindbottom']/ numbframes
+        finalgood['lateralLeftbottom']  =  finalgood['lateralLeftbottom']/ numbframes
+        finalgood['lateralRightbottom']  = finalgood['lateralRightbottom'] / numbframes
+        finalgood['LeftALLbottom']  = finalgood['LeftALLbottom']/ numbframes
+        finalgood['RightALLbottom']  = finalgood['RightALLbottom'] / numbframes
+        finalgood['frontaltop'] = finalgood['frontaltop']/ numbframes
+        finalgood['blindtop']  = finalgood['blindtop']/ numbframes
+        finalgood['lateralLefttop']  = finalgood['lateralLefttop']/ numbframes
+        finalgood['lateralRighttop']  = finalgood['lateralRighttop']/ numbframes
+        finalgood['LeftALLtop']  = finalgood['LeftALLtop']/ numbframes
+        finalgood['RightALLtop']  = finalgood['RightALLtop']/ numbframes
     
     # aks user if he wants to continue
     resp = interface.visualize_fields_q3()
