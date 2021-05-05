@@ -9,13 +9,71 @@ import tkinter
 import tkinter.ttk
 from tkinter import filedialog
 from PIL import ImageTk, Image
-from win32api import GetSystemMetrics
-
 
 dlc= ''
 video =''
 video2=''
 pathexcel=''
+
+class VerticalScrolledFrame(tkinter.Frame):
+    """A pure Tkinter scrollable frame that actually works!
+    * Use the 'interior' attribute to place widgets inside the scrollable frame
+    * Construct and pack/place/grid normally
+    * This frame only allows vertical scrolling
+
+    """
+    def __init__(self, parent, *args, **kw):
+        tkinter.Frame.__init__(self, parent, *args, **kw)            
+
+        # create a canvas object and a vertical scrollbar for scrolling it
+        vscrollbar = tkinter.Scrollbar(self, orient=tkinter.VERTICAL)
+        vscrollbar.pack(fill=tkinter.Y, side=tkinter.RIGHT, expand=tkinter.FALSE)
+        canvas = tkinter.Canvas(self, bd=0, highlightthickness=0,
+                        yscrollcommand=vscrollbar.set)
+        canvas.pack(side=tkinter.LEFT, fill=tkinter.BOTH, expand=tkinter.TRUE)
+        vscrollbar.config(command=canvas.yview)
+
+        # reset the view
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = interior = tkinter.Frame(canvas)
+        interior_id = canvas.create_window(0, 0, window=interior,
+                                           anchor=tkinter.NW)
+
+        # track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar
+        def _configure_interior(event):
+            # update the scrollbars to match the size of the inner frame
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            canvas.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # update the canvas's width to fit the inner frame
+                canvas.config(width=interior.winfo_reqwidth())
+        interior.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # update the inner frame's width to fill the canvas
+                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+        canvas.bind('<Configure>', _configure_canvas)
+
+def get_curr_screen_geometry():
+    """
+    Workaround to get the size of the current screen in a multi-screen setup.
+
+    Returns:
+        geometry (str): The standard Tk geometry string.
+            [width]x[height]+[left]+[top]
+    """
+    root = tkinter.Tk()
+    root.update_idletasks()
+    root.attributes('-fullscreen', True)
+    root.state('iconic')
+    geometry = root.winfo_geometry()
+    root.destroy()
+    return geometry
 
 # function to center window in the screen
 def center(win):
@@ -42,15 +100,19 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
     root_window.title("VF analysis: step1.")       
     root_window.configure(bg="white")
     
-    root_window.geometry(str(GetSystemMetrics(0))+"x"+str(GetSystemMetrics(1)))
+    root_window.geometry(get_curr_screen_geometry())
 
+    baseFrame=VerticalScrolledFrame(root_window)
+    baseFrame.pack(fill = tkinter.BOTH , expand=1)
     
     # create frame
-    frame=tkinter.ttk.Frame(root_window, width=400, height=200)
-    frame['borderwidth'] = 1
-    frame['relief'] = 'sunken'
-    frame.grid(column=0, row=1, padx=40, pady=10, sticky=(tkinter.W, tkinter.N, tkinter.E))
-    
+    frameb=tkinter.ttk.Frame(baseFrame.interior, width=900, height=500)
+    frameb['borderwidth'] = 1
+    frameb['relief'] = 'sunken'
+    frame=tkinter.ttk.Frame(frameb, width=900, height=500)
+
+    frame.grid(column=0, row=1, padx=5, pady=5, sticky=(tkinter.W, tkinter.N, tkinter.E))
+
 #    # create frame1
 #    frame1=tkinter.ttk.Frame(root_window, width=400, height=200)
 #    frame1['borderwidth'] = 1
@@ -64,11 +126,12 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
 #    frame2.grid(column=0, row=3, padx=40, pady=10, sticky=(tkinter.W, tkinter.N, tkinter.E))
     
     # create frame3
-    frame3=tkinter.ttk.Frame(root_window, width=400, height=200)
-    frame3['borderwidth'] = 1
-    frame3['relief'] = 'sunken'
-    frame3.grid(column=1, row=1, padx=40, pady=10, sticky=(tkinter.W, tkinter.N, tkinter.E))
-    
+    frame3b=tkinter.ttk.Frame(baseFrame.interior, width=900, height=500)
+    frame3b['borderwidth'] = 1
+    frame3b['relief'] = 'sunken'
+
+    frame3=tkinter.ttk.Frame(frame3b, width=900, height=500)
+    frame3.grid(column=0, row=2, padx=5, pady=5, sticky=(tkinter.W, tkinter.N, tkinter.E))
 #    # create frame4
 #    frame4=tkinter.ttk.Frame(root_window, width=400, height=200)
 #    frame4['borderwidth'] = 1
@@ -365,15 +428,16 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
     
     
 
-
     # --------------------------- 
     # Let's start!
     # -----------------------------    
     
     first_window_quit_button = tkinter.Button(frame3, text = "Let's start !", command = quit_program, bg="tomato" , justify='center', height = 2, width = 20, font = ("Helvetica", 12) )
     first_window_quit_button.grid(column = 0, row=9, pady=10, sticky=(tkinter.N))
-
-
+    
+    frameb.pack(fill = tkinter.BOTH )
+    frame3b.pack(fill = tkinter.BOTH )
+    baseFrame.config()
     # center window
     center(root_window)
     

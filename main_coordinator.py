@@ -159,12 +159,12 @@ pathgeneral = os.path.dirname(pathdlc)
 
 # path folder files
 pathfile = pathgeneral + '/data_files'
-if os.path.isdir(pathfile) == False:
-    os.mkdir(pathfile) # create new folder
+if os.path.isdir(pathfile) == False and pathgeneral != "":
+    os.mkdir(pathfile) # create new folder only when the pathdlc has been set
 
 # path folder results
 finaloutputpath = pathgeneral + '/results'
-if os.path.isdir(finaloutputpath) == False:
+if os.path.isdir(finaloutputpath) == False and pathgeneral != "":
     os.mkdir(finaloutputpath) # create new folder
 
 # path of videos if problem
