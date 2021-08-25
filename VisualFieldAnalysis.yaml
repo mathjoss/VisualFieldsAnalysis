@@ -1,0 +1,30 @@
+# VisualFieldAnalysis.yaml
+
+#Visual Field Analysis
+#M.Josserand & B.Lemaire
+#Please see AUTHORS for contributors.
+
+#https://github.com/mathjoss/VisualFieldsAnalysis
+#Licensed under GNU Lesser General Public License v3.0
+#
+# to create a new environment:
+# 1- download this file and place it inside your "Home" Folder (usually on C:/, before entering the Document or Download folder)
+# 2- open the terminal
+# 3- write "conda env create -f VFA.yaml" and press enter. It will take several minutes.
+# 4- when it is done, write "conda activate VFA"
+# 5- then write "spyder"
+# 6- open the file "main_coordinator" in spyder
+
+name: VisualFieldAnalysis
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pip
+  - spyder
+  - opencv
+  - matplotlib
+  - pandas
+  - numpy
+  - xlrd
