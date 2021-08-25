@@ -1,6 +1,6 @@
 This program uses outputs from DeepLabCut (http://www.mousemotorlab.org/deeplabcut and https://github.com/AlexEMG/DeepLabCut) to compute visual fields used by an animal toward a stimulus.
 
-From the body positions 'LeftHead', 'RightHead' and 'TopHead' obtained by DeepLabCut, it computes the visual fields (frontal view, blind view, lateral right view or lateral left view). It also indicates the position of the animal in the apparatus.
+From the body positions 'LeftHead', 'RightHead' and 'TopHead' obtained by DeepLabCut, it computes the visual fields (frontal view, blind view, lateral right view or lateral left view). It also indicates the position of the animal in the apparatus, how much the animal moved inside the apparatus, and the angle of the head toward the stimulus.
 
 If you want more info and explanation, please read the article with the full protocol.
 
