@@ -10,8 +10,8 @@
 # to create a new environment:
 # 1- download this file and place it inside your "Home" Folder (usually on C:/, before entering the Document or Download folder)
 # 2- open the terminal
-# 3- write "conda env create -f VFA.yaml" and press enter. It will take several minutes.
-# 4- when it is done, write "conda activate VFA"
+# 3- write "conda env create -f VisualFieldAnalysis.yaml" and press enter. It will take several minutes.
+# 4- when it is done, write "conda activate VisualFieldAnalysis"
 # 5- then write "spyder"
 # 6- open the file "main_coordinator" in spyder
 
