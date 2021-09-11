@@ -26,7 +26,7 @@ def detect_outlier(data_1, thresh):
     return outliers
 
 # main function to check errors
-def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym):
+def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, resp_gofast):
     import interface
     
     # check if distance between side and top head is above N standard error (N is defined by the user in thresh)
@@ -55,31 +55,33 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym):
     df_index = trialFrames.index.values.tolist()
     frames_to_visualize = [df_index.index(i) for i in index]
     
-    # ask user if he wants to visualize frames    
-    resp = interface.check_errors_q1(errors_distance_percent)
+    # ask user if he wants to visualize frames 
+    if resp_gofast=="n":
+        resp, resp_gofast = interface.check_errors_q1(errors_distance_percent)
 
-    # VISUALIZE ERRORS
-    if resp == 'y' :
-
-        for picnum in frames_to_visualize :
-            indexpic = picnum + txtFile.startingframe[0]
-            cap.set(1,indexpic); 
-            ret, img = cap.read() # Read the frame
-            
-            #print stimulus location on top and border
-            cv2.circle(img, (int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("leftheadx")]), int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("leftheady")])), 3, (255,0,0), -1)
-            cv2.circle(img, (int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("rightheadx")]), int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("rightheady")])), 3, (0,255,0), -1)
-            cv2.circle(img, (int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("topheadx")]), int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("topheady")])), 3, (0,0,255), -1)
-            cv2.putText(img, 'blue:leftHead', (100,150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,100,200),1)
-            cv2.putText(img, 'green:rightHead', (100,200), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,100,200),1)
-            cv2.putText(img, 'red:topHead', (100,250), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,100,200),1)
-            
-            cv2.imshow('check_errors', img)
-
-            # press any keyboard key to go to the next image
-            cv2.waitKey(0)
-            cv2.destroyAllWindows
+        # VISUALIZE ERRORS
+        if resp == 'y' :
     
+            for picnum in frames_to_visualize :
+                indexpic = picnum + txtFile.startingframe[0]
+                cap.set(1,indexpic); 
+                ret, img = cap.read() # Read the frame
+                
+                #print stimulus location on top and border
+                cv2.circle(img, (int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("leftheadx")]), int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("leftheady")])), 3, (255,0,0), -1)
+                cv2.circle(img, (int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("rightheadx")]), int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("rightheady")])), 3, (0,255,0), -1)
+                cv2.circle(img, (int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("topheadx")]), int(trialFrames.iloc[picnum, trialFrames.columns.get_loc("topheady")])), 3, (0,0,255), -1)
+                cv2.putText(img, 'blue:leftHead', (100,150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,100,200),1)
+                cv2.putText(img, 'green:rightHead', (100,200), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,100,200),1)
+                cv2.putText(img, 'red:topHead', (100,250), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,100,200),1)
+                
+                imS = cv2.resize(img, (960, 540)) 
+                cv2.imshow('check_errors', imS)
+                
+                # press any keyboard key to go to the next image
+                cv2.waitKey(0)
+                cv2.destroyAllWindows
+        
      
     # if you want to compute location without have NAN for stimulus
     # you will need to apply step 3 exactly here
@@ -91,18 +93,21 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym):
     trialFrames.loc[trialFrames.isnull().any(axis=1), :] = np.nan
     trialFrames['frame_number'] = frame_number
     
-    trialFrames["leftheadlikelihood"]= trialFrames["leftheadlikelihood"].where(trialFrames['leftheadlikelihood']>0.9)
-    trialFrames["rightheadlikelihood"]= trialFrames["rightheadlikelihood"].where(trialFrames['rightheadlikelihood']>0.9)
-    trialFrames["topheadlikelihood"]= trialFrames["topheadlikelihood"].where(trialFrames['topheadlikelihood']>0.9)
+    trialFrames["leftheadlikelihood"]= trialFrames["leftheadlikelihood"].where(trialFrames['leftheadlikelihood']>0.1)
+    trialFrames["rightheadlikelihood"]= trialFrames["rightheadlikelihood"].where(trialFrames['rightheadlikelihood']>0.1)
+    trialFrames["topheadlikelihood"]= trialFrames["topheadlikelihood"].where(trialFrames['topheadlikelihood']>0.1)
     
     trialFrames_for_loc = trialFrames.copy()
     
     if (movfix == 1) & (asym == False):
-        trialFrames["stimlikelihood"]= trialFrames["stimlikelihood"].where(trialFrames['stimlikelihood']>0.9)
-    if (movfix == 1) & (asym == True):
-        trialFrames["stimleftlikelihood"]= trialFrames["stimleftlikelihood"].where(trialFrames['stimleftlikelihood']>0.9)
-        trialFrames["stimrightlikelihood"]= trialFrames["stimrightlikelihood"].where(trialFrames['stimrightlikelihood']>0.9)
-    
+        trialFrames["stimlikelihood"]= trialFrames["stimlikelihood"].where(trialFrames['stimlikelihood']>0.1)
+    if (movfix == 1) & (asym == True) & (orientation == "lr"):
+        trialFrames["stimleftlikelihood"]= trialFrames["stimleftlikelihood"].where(trialFrames['stimleftlikelihood']>0.1)
+        trialFrames["stimrightlikelihood"]= trialFrames["stimrightlikelihood"].where(trialFrames['stimrightlikelihood']>0.1)
+    if (movfix == 1) & (asym == True) & (orientation == "bt"):
+        trialFrames["stimtoplikelihood"]= trialFrames["stimtoplikelihood"].where(trialFrames['stimtoplikelihood']>0.1)
+        trialFrames["stimbottomlikelihood"]= trialFrames["stimbottomlikelihood"].where(trialFrames['stimbottomlikelihood']>0.1)
+   
     # apply nan to all columns
     frame_number = trialFrames['frame_number']
     trialFrames.loc[trialFrames.isnull().any(axis=1), :] = np.nan
@@ -115,16 +120,17 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym):
     errors_total_percent = trialFrames["distLeftRight"].isna().sum() / len(trialFrames) *100
     print('% of nan in total : : ' + str(round(errors_total_percent,2)))
 
-    # ask user if he wants to continue    
-    resp2 = interface.check_errors_q2(errors_total_percent)
-    
-    # exit system if he wants to leafe
-    if resp2 == 'n' :
-        sys.exit()
+    # ask user if he wants to continue 
+    if resp_gofast == "n":   
+        resp2 = interface.check_errors_q2(errors_total_percent)
+        
+        # exit system if he wants to leafe
+        if resp2 == 'n' :
+            sys.exit()
         
     # remove columns that just have been created     
     trialFrames = trialFrames.drop(['distLeftRight', 'distLeftTop', 'distRightTop'], axis=1)
     
     #cv2.destroyWindow('check_errors') 
-    return trialFrames, trialFrames_for_loc, frame_number 
+    return trialFrames, trialFrames_for_loc, frame_number, resp_gofast 
         
