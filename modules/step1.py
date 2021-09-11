@@ -44,7 +44,7 @@ def create_new_file_lr(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
     cap.set(1,(newDataset['start (min)'][0])); 
     success, image = cap.read()
     cv2.imwrite("frame.jpg",image)
-    plt.imshow(image)
+    plt.imshow(image[:,:,::-1])
                   
     # select arena borders with mouse click
     plt.text(0, 0, "Click on top left corner", color="black", fontsize=10)
@@ -53,28 +53,28 @@ def create_new_file_lr(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
     newDataset['topLeftY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image) 
+    plt.imshow(image[:,:,::-1]) 
     plt.text(0, 0, "Click on top right corner", color="black", fontsize=10)
     arena_border = plt.ginput(1)
     newDataset['topRightX'] = round(arena_border[0][0])
     newDataset['topRightY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image) 
+    plt.imshow(image[:,:,::-1]) 
     plt.text(0, 0, "Click on bottom left corner", color="black", fontsize=10)
     arena_border = plt.ginput(1)
     newDataset['bottomLeftX'] = round(arena_border[0][0])
     newDataset['bottomLeftY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image) 
+    plt.imshow(image[:,:,::-1]) 
     plt.text(0, 0, "Click on bottom right corner", color="black", fontsize=10)
     arena_border = plt.ginput(1)
     newDataset['bottomRightX'] = round(arena_border[0][0])
     newDataset['bottomRightY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image) 
+    plt.imshow(image[:,:,::-1]) 
 
     # select position of the stim if needed
     if (movfix == 0) & (asym == False):
@@ -85,7 +85,7 @@ def create_new_file_lr(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
         newDataset['bottomStimY'] = round(arena_border[0][1])
         plt.close()
 
-        plt.imshow(image)  
+        plt.imshow(image[:,:,::-1])  
         plt.text(0, 0, "Click on top position of the stimulus", color="black", fontsize=10)
         arena_border = plt.ginput(1)
         newDataset['topStimX'] = round(arena_border[0][0])
@@ -98,21 +98,21 @@ def create_new_file_lr(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
         newDataset['bottomLeftStimY'] = round(arena_border[0][1])
         plt.close()
 
-        plt.imshow(image)  
+        plt.imshow(image[:,:,::-1])  
         plt.text(0, 0, "Click on top position of the stimulus, on the left side", color="black", fontsize=10)
         arena_border = plt.ginput(1)
         newDataset['topLeftStimX'] = round(arena_border[0][0])
         newDataset['topLeftStimY'] = round(arena_border[0][1])
         plt.close()
 
-        plt.imshow(image)  
+        plt.imshow(image[:,:,::-1])  
         plt.text(0, 0, "Click on bottom position of the stimulus, on the right side", color="black", fontsize=10)
         arena_border = plt.ginput(1)
         newDataset['bottomRightStimX'] = round(arena_border[0][0])
         newDataset['bottomRightStimY'] = round(arena_border[0][1])
         plt.close()
 
-        plt.imshow(image)  
+        plt.imshow(image[:,:,::-1])  
         plt.text(0, 0, "Click on top position of the stimulus, on the right side", color="black", fontsize=10)
         arena_border = plt.ginput(1)
         newDataset['topRightStimX'] = round(arena_border[0][0])
@@ -141,7 +141,7 @@ def create_new_file_bt(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
     cap.set(1,(newDataset['start (min)'][0])); 
     success, image = cap.read()
     cv2.imwrite("frame.jpg",image)
-    plt.imshow(image)
+    plt.imshow(image[:,:,::-1])
                  
     # select arena borders with mouse click
     plt.text(0, 0, "Click on top left corner", color="black", fontsize=10)
@@ -150,25 +150,120 @@ def create_new_file_bt(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
     newDataset['topLeftY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image) 
+    plt.imshow(image[:,:,::-1]) 
     plt.text(0, 0, "Click on top right corner", color="black", fontsize=10)
     arena_border = plt.ginput(1)
     newDataset['topRightX'] = round(arena_border[0][0])
     newDataset['topRightY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image)    
+    plt.imshow(image[:,:,::-1])    
     plt.text(0, 0, "Click on bottom left corner", color="black", fontsize=10)
     arena_border = plt.ginput(1)
     newDataset['bottomLeftX'] = round(arena_border[0][0])
     newDataset['bottomLeftY'] = round(arena_border[0][1])
     plt.close()
 
-    plt.imshow(image)    
+    plt.imshow(image[:,:,::-1])    
     plt.text(0, 0, "Click on bottom right corner", color="black", fontsize=10)
     arena_border = plt.ginput(1)
     newDataset['bottomRightX'] = round(arena_border[0][0])
     newDataset['bottomRightY'] = round(arena_border[0][1])
+    plt.close()
+
+    # select position of the stim if needed
+    if (movfix == 0) & (asym == False):
+        plt.imshow(image[:,:,::-1])    
+        plt.text(0, 0, "Click on left position of the stimulus", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['leftStimX'] = round(arena_border[0][0])
+        newDataset['leftStimY'] = round(arena_border[0][1])
+        plt.close()
+
+        plt.imshow(image[:,:,::-1])
+        plt.text(0, 0, "Click on right position of the stimulus", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['rightStimX'] = round(arena_border[0][0])
+        newDataset['rightStimY'] = round(arena_border[0][1])
+        
+    if (movfix == 0) & (asym == True):
+        plt.imshow(image[:,:,::-1])    
+        plt.text(0, 0, "Click on left position of the stimulus, on the top", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['leftTopStimX'] = round(arena_border[0][0])
+        newDataset['leftTopStimY'] = round(arena_border[0][1])
+        plt.close()
+
+        plt.imshow(image[:,:,::-1])
+        plt.text(0, 0, "Click on right position of the stimulus, on the top", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['rightTopStimX'] = round(arena_border[0][0])
+        newDataset['rightTopStimY'] = round(arena_border[0][1])
+        plt.close()
+
+        plt.imshow(image[:,:,::-1])
+        plt.text(0, 0, "Click on left position of the stimulus, on the bottom", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['leftBottomStimX'] = round(arena_border[0][0])
+        newDataset['leftBottomStimY'] = round(arena_border[0][1])
+        plt.close()
+
+        plt.imshow(image[:,:,::-1])
+        plt.text(0, 0, "Click on right position of the stimulus, on the bottom", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['rightBottomStimX'] = round(arena_border[0][0])
+        newDataset['rightBottomStimY'] = round(arena_border[0][1])
+        
+    newDataset['topBorder'] = round((newDataset['topLeftY'] + newDataset['topRightY'])/2)
+    newDataset['bottomBorder'] = round((newDataset['bottomLeftY'] + newDataset['bottomRightY'])/2)
+        
+    plt.close()
+    os.remove("frame.jpg")
+    cap.release()
+    cv2.destroyAllWindows()
+    
+    newDataset.rename(index=str, columns={"start (min)":"startingFrame", "stop (min)":"endingFrame"}, inplace=True) # rename columns
+    newDataset.to_csv(pathfile + '/' + animal_type + '%s.csv' %ID, index = False)
+  
+# create file for a center style apparatus
+def create_new_file_cen_new(cap, ID, input_xls, animal_type, pathfile, movfix, asym, numbframes): 
+    dataset = pd.read_excel(input_xls, sheet_name = animal_type + '%s' %ID, header = 1)
+    time_to_frames(dataset, cap, numbframes) # convert from min to sec 
+    newDataset = pd.DataFrame(dataset, columns= ['ID', 'sex', 'condition', 'trial', 'object', 'position_object', 'start (min)', 'stop (min)'])
+
+
+    # select first frame of the starting point of the video
+    cap.set(1,(newDataset['start (min)'][0])); 
+    success, image = cap.read()
+    cv2.imwrite("frame.jpg",image)
+    plt.imshow(image)
+                 
+    # select arena borders with mouse click
+    plt.text(0, 0, "Click on the left edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenaleftX'] = round(arena_border[0][0])
+    newDataset['arenaleftY'] = round(arena_border[0][1])
+    plt.close()
+
+    plt.imshow(image) 
+    plt.text(0, 0, "Click on the right edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenarightX'] = round(arena_border[0][0])
+    newDataset['arenarightY'] = round(arena_border[0][1])
+    plt.close()
+
+    plt.imshow(image)    
+    plt.text(0, 0, "Click on the upper edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenaupX'] = round(arena_border[0][0])
+    newDataset['arenaupY'] = round(arena_border[0][1])
+    plt.close()
+
+    plt.imshow(image)    
+    plt.text(0, 0, "Click on the lower edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenalowX'] = round(arena_border[0][0])
+    newDataset['arenalowY'] = round(arena_border[0][1])
     plt.close()
 
     # select position of the stim if needed
@@ -188,34 +283,34 @@ def create_new_file_bt(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
         
     if (movfix == 0) & (asym == True):
         plt.imshow(image)    
-        plt.text(0, 0, "Click on left position of the stimulus, on the top", color="black", fontsize=10)
+        plt.text(0, 0, "Click on left position of the first stimulu", color="black", fontsize=10)
         arena_border = plt.ginput(1)
-        newDataset['leftTopStimX'] = round(arena_border[0][0])
-        newDataset['leftTopStimY'] = round(arena_border[0][1])
+        newDataset['left1StimX'] = round(arena_border[0][0])
+        newDataset['left1StimY'] = round(arena_border[0][1])
         plt.close()
 
         plt.imshow(image)
-        plt.text(0, 0, "Click on right position of the stimulus, on the top", color="black", fontsize=10)
+        plt.text(0, 0, "Click on right position of the first stimulus", color="black", fontsize=10)
         arena_border = plt.ginput(1)
-        newDataset['rightTopStimX'] = round(arena_border[0][0])
-        newDataset['rightTopStimY'] = round(arena_border[0][1])
+        newDataset['right1StimX'] = round(arena_border[0][0])
+        newDataset['right1StimY'] = round(arena_border[0][1])
         plt.close()
 
         plt.imshow(image)
-        plt.text(0, 0, "Click on left position of the stimulus, on the bottom", color="black", fontsize=10)
+        plt.text(0, 0, "Click on left position of the second stimulus", color="black", fontsize=10)
         arena_border = plt.ginput(1)
-        newDataset['leftBottomStimX'] = round(arena_border[0][0])
-        newDataset['leftBottomStimY'] = round(arena_border[0][1])
+        newDataset['left2StimX'] = round(arena_border[0][0])
+        newDataset['left2StimY'] = round(arena_border[0][1])
         plt.close()
 
         plt.imshow(image)
-        plt.text(0, 0, "Click on right position of the stimulus, on the bottom", color="black", fontsize=10)
+        plt.text(0, 0, "Click on right position of the second stimulus", color="black", fontsize=10)
         arena_border = plt.ginput(1)
-        newDataset['rightBottomStimX'] = round(arena_border[0][0])
-        newDataset['rightBottomStimY'] = round(arena_border[0][1])
+        newDataset['right2StimX'] = round(arena_border[0][0])
+        newDataset['right2StimY'] = round(arena_border[0][1])
         
-    newDataset['topBorder'] = round((newDataset['topLeftY'] + newDataset['topRightY'])/2)
-    newDataset['bottomBorder'] = round((newDataset['bottomLeftY'] + newDataset['bottomRightY'])/2)
+    #newDataset['topBorder'] = round((newDataset['topLeftY'] + newDataset['topRightY'])/2)
+    #newDataset['bottomBorder'] = round((newDataset['bottomLeftY'] + newDataset['bottomRightY'])/2)
         
     plt.close()
     os.remove("frame.jpg")
@@ -224,3 +319,81 @@ def create_new_file_bt(cap, ID, input_xls, animal_type, pathfile, movfix, asym, 
     
     newDataset.rename(index=str, columns={"start (min)":"startingFrame", "stop (min)":"endingFrame"}, inplace=True) # rename columns
     newDataset.to_csv(pathfile + '/' + animal_type + '%s.csv' %ID, index = False)
+
+# create file for a center style apparatus
+def create_new_file_cen(cap, ID, input_xls, animal_type, pathfile, movfix, asym, numbframes): 
+    dataset = pd.read_excel(input_xls, sheet_name = animal_type + '%s' %ID, header = 1)
+    time_to_frames(dataset, cap, numbframes) # convert from min to sec 
+    newDataset = pd.DataFrame(dataset, columns= ['ID', 'sex', 'condition', 'trial', 'object', 'position_object', 'start (min)', 'stop (min)'])
+
+
+    # select first frame of the starting point of the video
+    cap.set(1,(newDataset['start (min)'][0])); 
+    success, image = cap.read()
+    cv2.imwrite("frame.jpg",image)
+    plt.imshow(image)
+                 
+    # select arena borders with mouse click
+    plt.text(0, 0, "Click on the left edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenaleftX'] = round(arena_border[0][0])
+    newDataset['arenaleftY'] = round(arena_border[0][1])
+    plt.close()
+
+    plt.imshow(image) 
+    plt.text(0, 0, "Click on the right edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenarightX'] = round(arena_border[0][0])
+    newDataset['arenarightY'] = round(arena_border[0][1])
+    plt.close()
+
+    plt.imshow(image)    
+    plt.text(0, 0, "Click on the upper edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenaupX'] = round(arena_border[0][0])
+    newDataset['arenaupY'] = round(arena_border[0][1])
+    plt.close()
+
+    plt.imshow(image)    
+    plt.text(0, 0, "Click on the lower edge of the circle/square", color="black", fontsize=10)
+    arena_border = plt.ginput(1)
+    newDataset['arenalowX'] = round(arena_border[0][0])
+    newDataset['arenalowY'] = round(arena_border[0][1])
+    plt.close()
+
+    # select position of the stim if needed
+    if (movfix == 0) & (asym == False):
+        plt.imshow(image)    
+        plt.text(0, 0, "Click on stimulus center", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['stimx'] = round(arena_border[0][0])
+        newDataset['stimy'] = round(arena_border[0][1])
+        plt.close()
+
+
+    if (movfix == 0) & (asym == True):
+        plt.imshow(image)    
+        plt.text(0, 0, "Click on the center of the first stimulus", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['stim1x'] = round(arena_border[0][0])
+        newDataset['stim1y'] = round(arena_border[0][1])
+        plt.close()
+
+        plt.imshow(image)
+        plt.text(0, 0, "Click on the center of the second stimulus", color="black", fontsize=10)
+        arena_border = plt.ginput(1)
+        newDataset['stim2x'] = round(arena_border[0][0])
+        newDataset['stim2x'] = round(arena_border[0][1])
+        plt.close()
+
+    #newDataset['topBorder'] = round((newDataset['topLeftY'] + newDataset['topRightY'])/2)
+    #newDataset['bottomBorder'] = round((newDataset['bottomLeftY'] + newDataset['bottomRightY'])/2)
+        
+    plt.close()
+    os.remove("frame.jpg")
+    cap.release()
+    cv2.destroyAllWindows()
+    
+    newDataset.rename(index=str, columns={"start (min)":"startingFrame", "stop (min)":"endingFrame"}, inplace=True) # rename columns
+    newDataset.to_csv(pathfile + '/' + animal_type + '%s.csv' %ID, index = False)
+        
