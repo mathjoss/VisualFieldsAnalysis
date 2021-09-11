@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jul 16 11:26:41 2019
-
 @author: mathilde.josserand
 """
 
@@ -20,7 +19,6 @@ class VerticalScrolledFrame(tkinter.Frame):
     * Use the 'interior' attribute to place widgets inside the scrollable frame
     * Construct and pack/place/grid normally
     * This frame only allows vertical scrolling
-
     """
     def __init__(self, parent, *args, **kw):
         tkinter.Frame.__init__(self, parent, *args, **kw)            
@@ -62,7 +60,6 @@ class VerticalScrolledFrame(tkinter.Frame):
 def get_curr_screen_geometry():
     """
     Workaround to get the size of the current screen in a multi-screen setup.
-
     Returns:
         geometry (str): The standard Tk geometry string.
             [width]x[height]+[left]+[top]
@@ -74,6 +71,8 @@ def get_curr_screen_geometry():
     geometry = root.winfo_geometry()
     root.destroy()
     return geometry
+
+
 
 # function to center window in the screen
 def center(win):
@@ -100,7 +99,10 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
     root_window.title("VF analysis: step1.")       
     root_window.configure(bg="white")
     
-    root_window.geometry(get_curr_screen_geometry())
+    width = root_window.winfo_screenwidth()
+    height = root_window.winfo_screenheight()
+    root_window.geometry("%dx%d" % (width-100, height-200))
+    #root_window.geometry(get_curr_screen_geometry())
 
     baseFrame=VerticalScrolledFrame(root_window)
     baseFrame.pack(fill = tkinter.BOTH , expand=1)
@@ -295,10 +297,12 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
     second_radiobutton1.grid(column=1, row=12, pady=10, padx=10, sticky=(tkinter.N))
     second_radiobutton2 = tkinter.Radiobutton(frame, text="Left and/or right", padx = 20,  variable=orientation, value='lr')
     second_radiobutton2.grid(column=2, row=12, pady=10, padx=10, sticky=(tkinter.N))
+    third_radiobutton2 = tkinter.Radiobutton(frame, text="Inside (only with 1 stim)", padx = 20,  variable=orientation, value='cen')
+    third_radiobutton2.grid(column=3, row=12, pady=10, padx=10, sticky=(tkinter.N))
     
     # print image
     imgg = Image.open("pictures/orientation.png")
-    imgg = imgg.resize((300, 150), Image.ANTIALIAS)
+    imgg = imgg.resize((585, 222), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(imgg)
     panel =  tkinter.ttk.Label(frame, image = img)
     panel.grid(column=0, row=13, pady=10, padx=10, sticky=(tkinter.N))
@@ -399,7 +403,7 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
     ninth_window_entry5.grid(column=1, row=4, pady=10, padx=10, sticky=(tkinter.N))
     
     imgg = Image.open("pictures/areas.png")
-    imgg = imgg.resize((309, 200), Image.ANTIALIAS)
+    imgg = imgg.resize((int(963/1.2), int(339/1.2)), Image.ANTIALIAS)
     img2 = ImageTk.PhotoImage(imgg)
     panel2 =  tkinter.ttk.Label(frame3, image = img2)
     panel2.grid(column=0, row=5, pady=10, padx=10, sticky=(tkinter.N))
@@ -435,6 +439,9 @@ def ask_parameters(pre_chick, pre_orient, pre_dlc, pre_video, pre_video2, pre_pr
     first_window_quit_button = tkinter.Button(frame3, text = "Let's start !", command = quit_program, bg="tomato" , justify='center', height = 2, width = 20, font = ("Helvetica", 12) )
     first_window_quit_button.grid(column = 0, row=9, pady=10, sticky=(tkinter.N))
     
+    final_window_label3 = tkinter.ttk.Label(frame3, text='For any questions, please look at the protocol: dx.doi.org/10.17504/protocols.io.bicvkaw6 ')
+    final_window_label3.grid(column=0, row=10, pady=10, padx=10, sticky=(tkinter.N))
+
     frameb.pack(fill = tkinter.BOTH )
     frame3b.pack(fill = tkinter.BOTH )
     baseFrame.config()
@@ -493,9 +500,12 @@ def error_excel_file(pathexcelfile):
     
     label3 = tkinter.ttk.Label(frame, text=' actually exist? And is it an excel file? Rerun the program and change this value. ')
     label3.grid(column=0, row=2, pady=10, padx=10, sticky=(tkinter.N))
+    
+    label4 = tkinter.ttk.Label(frame, text=' If it was correct, please consider changing the extension from .xlsx to .xls (excel version 97-2003)')
+    label4.grid(column=0, row=3, pady=10, padx=10, sticky=(tkinter.N))
 
     second_window_next_button = tkinter.Button(frame, text = "OK", command = quit_program)
-    second_window_next_button.grid(column=0, row=3, pady=10, sticky=(tkinter.N))
+    second_window_next_button.grid(column=0, row=4, pady=10, sticky=(tkinter.N))
     center(root_window)
     root_window.mainloop()
 
@@ -594,11 +604,11 @@ def check_errors_q1(errors_distance_percent):
     frame['borderwidth'] = 2
     frame['relief'] = 'sunken'
     frame.grid(column=0, row=0, padx=20, pady=5, sticky=(tkinter.W, tkinter.N, tkinter.E))
-    texttoshow = str(round(errors_distance_percent,2)) + ' % is the percentage of rows that will be counted as NAN by Visual Field analysis program.'
+    texttoshow = 'The chosen threshold classifies ' + str(round(errors_distance_percent,2)) + ' % of the frames as outliers. These frames will not be further considered in the analysis.'
     label1 = tkinter.ttk.Label(frame, text=texttoshow)
     label1.grid(column=0, row=0, pady=10, padx=10, sticky=(tkinter.N))
     
-    label2 = tkinter.ttk.Label(frame, text=' Do you want to see frames that were considered as outlier by the program?')
+    label2 = tkinter.ttk.Label(frame, text='Do you want to check these frames?')
     label2.grid(column=0, row=1, pady=10, padx=10, sticky=(tkinter.N))
     
     resp = tkinter.StringVar()
@@ -607,16 +617,25 @@ def check_errors_q1(errors_distance_percent):
     second_window_radiobutton2 = tkinter.Radiobutton(frame, text="no", padx = 20,  variable=resp, value='n')
     second_window_radiobutton2.grid(column=0, row=3, pady=10, padx=10, sticky=(tkinter.N))
     
-    label3 = tkinter.ttk.Label(frame, text=' After checking the frames: if you think that the program should have not classified these frames in NaN, abort the program and increase threshold value.')
+    label3 = tkinter.ttk.Label(frame, text=' After checking the frames: if the tracking was correct, abort the program and increase the threshold value.')
     label3.grid(column=0, row=4, pady=10, padx=10, sticky=(tkinter.N))
 
+    label4 = tkinter.ttk.Label(frame, text='If want to analyse directly all animals (without ticking all successive boxes), select "yes"')
+    label4.grid(column=0, row=5, pady=10, padx=10, sticky=(tkinter.N))
+    
+    resp_gofast = tkinter.StringVar(None, "n")
+    second_window_radiobutton3 = tkinter.Radiobutton(frame, text="yes", padx = 20, variable=resp_gofast, value='y')
+    second_window_radiobutton3.grid(column=1, row=5, pady=10, padx=10, sticky=(tkinter.N))
+    second_window_radiobutton4 = tkinter.Radiobutton(frame, text="no", padx = 20,  variable=resp_gofast, value='n')
+    second_window_radiobutton4.grid(column=2, row=5, pady=10, padx=10, sticky=(tkinter.N))
+    
     second_window_next_button = tkinter.Button(frame, text = "OK", command = quit_program)
-    second_window_next_button.grid(column=0, row=5, pady=10, sticky=(tkinter.N))
+    second_window_next_button.grid(column=0, row=6, pady=10, sticky=(tkinter.N))
     center(root_window)
     root_window.mainloop()
     resp= resp.get()
-    
-    return resp
+    resp_gofast = resp_gofast.get()
+    return resp, resp_gofast
 
 def check_errors_q2(errors_total_percent):
 
@@ -628,17 +647,17 @@ def check_errors_q2(errors_total_percent):
     frame2['borderwidth'] = 2
     frame2['relief'] = 'sunken'
     frame2.grid(column=0, row=0, padx=20, pady=5, sticky=(tkinter.W, tkinter.N, tkinter.E))
-    texttoshow2= str(round(errors_total_percent,2)) + ' % is the total percentage of rows that will be counted as NAN. It includes:'
+    texttoshow2= 'In total, '+ str(round(errors_total_percent,2)) + ' % of the frames are classified as NAN. Note that this total percentage includes:'
     label1 = tkinter.ttk.Label(frame2, text=texttoshow2)
     label1.grid(column=0, row=0, pady=10, padx=10, sticky=(tkinter.N))
     
-    label2 = tkinter.ttk.Label(frame2, text=" - frames removed by Visual Field Analysis program (which you checked)")
+    label2 = tkinter.ttk.Label(frame2, text=" - frames removed by VFA program (previous step)")
     label2.grid(column=0, row=1, pady=10, padx=10, sticky=(tkinter.N))
     
-    label3 = tkinter.ttk.Label(frame2, text=" - frames where likelihood < 0.9 according to Deeplabcut")
+    label3 = tkinter.ttk.Label(frame2, text=" - frames tracked by DLC with likelihood < 0.9")
     label3.grid(column=0, row=2, pady=10, padx=10, sticky=(tkinter.N))
     
-    label4 = tkinter.ttk.Label(frame2, text=" - frames where no stimuli is present (if stimuli is moving and tracked by deeplabcut)")
+    label4 = tkinter.ttk.Label(frame2, text=" - frames without stimuli (if stimuli tracked by DLC)")
     label4.grid(column=0, row=3, pady=10, padx=10, sticky=(tkinter.N))
     
     label5 = tkinter.ttk.Label(frame2, text=" Do you want to continue? ")
@@ -663,10 +682,15 @@ def visualize_fields_q1():
         root_window.destroy()
         
     root_window = tkinter.Tk()
-    frame=tkinter.ttk.Frame(root_window, width=800, height=400)
+    frame=tkinter.ttk.Frame(root_window, width=800, height=600)
+  
+    screen_width = root_window.winfo_screenwidth()
+    screen_height = root_window.winfo_screenheight()
+    
     frame['borderwidth'] = 2
     frame['relief'] = 'sunken'
     frame.grid(column=0, row=0, padx=20, pady=5, sticky=(tkinter.W, tkinter.N, tkinter.E))
+    
     texttoshow = 'Do you want to randomly check pictures to see if the visual fields are correct?'
     label1 = tkinter.ttk.Label(frame, text=texttoshow)
     label1.grid(column=0, row=0, pady=10, padx=10, sticky=(tkinter.N))
@@ -676,13 +700,29 @@ def visualize_fields_q1():
     second_window_radiobutton1.grid(column=0, row=1, pady=10, padx=10, sticky=(tkinter.N))
     second_window_radiobutton2 = tkinter.Radiobutton(frame, text="No", padx = 20,  variable=response, value='n')
     second_window_radiobutton2.grid(column=0, row=2, pady=10, padx=10, sticky=(tkinter.N))
-    second_window_next_button = tkinter.Button(frame, text = "OK", command = quit_program)
-    second_window_next_button.grid(column=0, row=3, pady=10, sticky=(tkinter.N))
+    #second_window_next_button = tkinter.Button(frame, text = "OK", command = quit_program)
+    #second_window_next_button.grid(column=0, row=3, pady=10, sticky=(tkinter.N))
+
+    
+    
+
+    texttoshow = 'If yes, how many frames do you want to visualize?'
+    label2 = tkinter.ttk.Label(frame, text=texttoshow)
+    label2.grid(column=0, row=3, pady=10, padx=10, sticky=(tkinter.N))
+
+    numbpic = tkinter.IntVar()
+    entry = tkinter.Entry(frame, width=10, textvariable=numbpic)
+    entry.grid(column=0, row=4, pady=10, padx=10, sticky=(tkinter.N))
+    button = tkinter.Button(frame, text = "OK", command = quit_program)
+    button.grid(column=0, row=5, pady=10, sticky=(tkinter.N))
+    
     center(root_window)
     root_window.mainloop()
+    numbpic= numbpic.get()
     response= response.get()
+
     
-    return response
+    return response, numbpic, screen_width, screen_height
 
 def visualize_fields_q2():
 
@@ -694,7 +734,7 @@ def visualize_fields_q2():
     frame3['borderwidth'] = 2
     frame3['relief'] = 'sunken'
     frame3.grid(column=0, row=0, padx=20, pady=5, sticky=(tkinter.W, tkinter.N, tkinter.E))
-    texttoshow = 'How many frames do you want to visualize?'
+    texttoshow = 'If yes, how many frames do you want to visualize?'
     label2 = tkinter.ttk.Label(frame3, text=texttoshow)
     label2.grid(column=0, row=0, pady=10, padx=10, sticky=(tkinter.N))
 
