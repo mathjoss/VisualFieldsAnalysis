@@ -30,7 +30,7 @@ For someone not familiar with programming but WITH ANACONDA INSTALLED, follow th
 1. Download all functions and files available on github from https://github.com/mathjoss/VisualFieldsAnalysis.git
 2. Copy paste the file "VisualFieldAnalysis.yaml" inside your "home" folder. This folder is usually the one when you go one step backward in the tree structure from your Documents. In other terms, go in your disk "C:/", select your user name if there are several user, and then paste the file near the folders "Documents", "Downloads",...
 3. Open the terminal (command prompt). How to open it depends on your operating system. You will easily find it on Google.
-4. write "conda env create -f VFA.yaml" and press enter. It will take several minutes.
+4. write "conda env create -f VisualFieldAnalysis.yaml" and press enter. It will take several minutes.
 5. When it is done, write "conda activate VisualFieldAnalysis" and press enter.
 6. Then write "spyder". It will open a new console.
 7. Open the file "main_coordinator" in spyder, and then press the button "Run" which look like a green "play" arrow.
