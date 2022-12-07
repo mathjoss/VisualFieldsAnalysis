@@ -440,8 +440,9 @@ for ID in IDList :
         final5 = final5.rename(index=str, columns={"level_0": "seconds"})
     
     #delete the first row and the last one
-    #final5 = final5.iloc[1:]
-    #final5.drop(final5.tail(1).index,inplace=True)
+    final5 = final5.iloc[1:]
+    final5.drop(final5.tail(1).index,inplace=True)
+    final5 = final5.iloc[: , :-1]
     
     # add nan columns
     if numbframes != 1:
