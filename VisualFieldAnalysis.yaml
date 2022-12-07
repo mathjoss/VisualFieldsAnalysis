@@ -28,3 +28,4 @@ dependencies:
   - pandas
   - numpy
   - xlrd
+  - pyimage
