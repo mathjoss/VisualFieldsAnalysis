@@ -39,13 +39,21 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, r
     trialFrames["distRightTop"]= calculateDistance(trialFrames['rightheadx'], trialFrames['rightheady'], trialFrames['topheadx'], trialFrames['topheady']) 
     outlier_datapoints = detect_outlier(trialFrames["distRightTop"], thresh)
     if len(outlier_datapoints)!=0 :
-        trialFrames["distLeftTop"] = trialFrames["distLeftTop"].replace(outlier_datapoints, np.nan) 
-
+          # replace outlier value with nan in "distRightTop" column
+          trialFrames["distRightTop"] = trialFrames["distRightTop"].replace(outlier_datapoints, np.nan)
+          
+          # replace "distLeftTop" column value with NAN if the "distRightTop" column's value in the same row is NAN
+          trialFrames.loc[trialFrames["distRightTop"].isnull(), "distLeftTop"]=np.nan
+          
     trialFrames["distLeftRight"]= calculateDistance(trialFrames['leftheadx'], trialFrames['leftheady'], trialFrames['rightheadx'], trialFrames['rightheady']) 
     outlier_datapoints = detect_outlier(trialFrames["distLeftRight"], thresh)
     if len(outlier_datapoints)!=0 :
-        trialFrames["distLeftTop"] = trialFrames["distLeftTop"].replace(outlier_datapoints, np.nan) 
-
+          # replace outlier value with nan in "distLeftRight" column
+          trialFrames["distLeftRight"] = trialFrames["distLeftRight"].replace(outlier_datapoints, np.nan)
+          
+          # replace "distLeftTop" column value with NAN if the "distRightTop" column's value is NAN
+          trialFrames.loc[trialFrames["distLeftRight"].isnull(), "distLeftTop"]=np.nan
+          
     # print number of errors detected with this method
     errors_distance_percent = trialFrames["distLeftTop"].isna().sum() / len(trialFrames) *100
     print('% of outliers nan found with threshold method : ' + str(round(errors_distance_percent,2)))
@@ -93,20 +101,21 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, r
     trialFrames.loc[trialFrames.isnull().any(axis=1), :] = np.nan
     trialFrames['frame_number'] = frame_number
     
-    trialFrames["leftheadlikelihood"]= trialFrames["leftheadlikelihood"].where(trialFrames['leftheadlikelihood']>0.1)
-    trialFrames["rightheadlikelihood"]= trialFrames["rightheadlikelihood"].where(trialFrames['rightheadlikelihood']>0.1)
-    trialFrames["topheadlikelihood"]= trialFrames["topheadlikelihood"].where(trialFrames['topheadlikelihood']>0.1)
+    # change the value from 0.9 to 0.1 to remove the likelihood <0.9
+    trialFrames["leftheadlikelihood"]= trialFrames["leftheadlikelihood"].where(trialFrames['leftheadlikelihood']>0.9) 
+    trialFrames["rightheadlikelihood"]= trialFrames["rightheadlikelihood"].where(trialFrames['rightheadlikelihood']>0.9)
+    trialFrames["topheadlikelihood"]= trialFrames["topheadlikelihood"].where(trialFrames['topheadlikelihood']>0.9)
     
     trialFrames_for_loc = trialFrames.copy()
     
     if (movfix == 1) & (asym == False):
-        trialFrames["stimlikelihood"]= trialFrames["stimlikelihood"].where(trialFrames['stimlikelihood']>0.1)
+        trialFrames["stimlikelihood"]= trialFrames["stimlikelihood"].where(trialFrames['stimlikelihood']>0.9)
     if (movfix == 1) & (asym == True) & (orientation == "lr"):
-        trialFrames["stimleftlikelihood"]= trialFrames["stimleftlikelihood"].where(trialFrames['stimleftlikelihood']>0.1)
-        trialFrames["stimrightlikelihood"]= trialFrames["stimrightlikelihood"].where(trialFrames['stimrightlikelihood']>0.1)
+        trialFrames["stimleftlikelihood"]= trialFrames["stimleftlikelihood"].where(trialFrames['stimleftlikelihood']>0.9)
+        trialFrames["stimrightlikelihood"]= trialFrames["stimrightlikelihood"].where(trialFrames['stimrightlikelihood']>0.9)
     if (movfix == 1) & (asym == True) & (orientation == "bt"):
-        trialFrames["stimtoplikelihood"]= trialFrames["stimtoplikelihood"].where(trialFrames['stimtoplikelihood']>0.1)
-        trialFrames["stimbottomlikelihood"]= trialFrames["stimbottomlikelihood"].where(trialFrames['stimbottomlikelihood']>0.1)
+        trialFrames["stimtoplikelihood"]= trialFrames["stimtoplikelihood"].where(trialFrames['stimtoplikelihood']>0.9)
+        trialFrames["stimbottomlikelihood"]= trialFrames["stimbottomlikelihood"].where(trialFrames['stimbottomlikelihood']>0.9)
    
     # apply nan to all columns
     frame_number = trialFrames['frame_number']
