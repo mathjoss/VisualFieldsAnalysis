@@ -289,8 +289,8 @@ for ID in IDList :
     # read video
     cap = cv2.VideoCapture(pathvideo %ID)
     # check errors and return table with NAN
-    trialFrames, trialFrames_for_loc, frame_number, resp_gofast = step2.check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, resp_gofast)
-
+    trialFrames, trialFrames_for_loc, frame_number, resp_gofast = step2.check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, resp_gofast, ID, pathfile, animal_type)
+    
     
     ######## STEP 3 : compute location
     if orientation == 'lr' :
