@@ -26,7 +26,7 @@ def detect_outlier(data_1, thresh):
     return outliers
 
 # main function to check errors
-def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, resp_gofast):
+def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, resp_gofast, ID, pathfile, animal_type):
     import interface
     
     # check if distance between side and top head is above N standard error (N is defined by the user in thresh)
@@ -128,7 +128,12 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, r
     # total percentage of error
     errors_total_percent = trialFrames["distLeftRight"].isna().sum() / len(trialFrames) *100
     print('% of nan in total : : ' + str(round(errors_total_percent,2)))
-
+     
+    # save the percentage of nan computed by threshold method and DLC likelihood to csv file
+    d={'id': ID, 'ratio outliers nan found with threshold method': str(round(errors_distance_percent,2)), 'ratio nan in total': str(round(errors_total_percent,2))}
+    df = pd.DataFrame(data=d, index=[0])
+    df.to_csv(pathfile + '/' + animal_type + '%s_nanratio.csv' %ID, sep=',')
+     
     # ask user if he wants to continue 
     if resp_gofast == "n":   
         resp2 = interface.check_errors_q2(errors_total_percent)
