@@ -183,7 +183,7 @@ IDList = animal_ID.split(' ')
 
 # read excel file
 try:
-    input_xls = pd.ExcelFile(excelfile)
+    input_xls = pd.ExcelFile(excelfile, engine='openpyxl')
 except:
     interface.error_excel_file(excelfile)
     sys.exit()
