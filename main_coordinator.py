@@ -5,7 +5,7 @@ Created on Tue Jul  2 14:54:18 2019
 @author: mathilde.josserand
 
 
-March 2023, upodate on excel pd read
+March 2023, update on excel pd read - Mirko Zanon
 """
 import sys
 import pandas as pd
