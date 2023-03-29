@@ -13,7 +13,7 @@ Before using this program:
 *------------------*
 
 REQUIREMENTS
-Python (only >3 tested)  with pandas, matplotlib, opencv, numpy, xlrd
+Python (only >3 tested)  with pandas, matplotlib, opencv, numpy, xlrd, openpyxl
 To help you with these packages, a yaml file is available. See part "Installation" for more information.
 
 

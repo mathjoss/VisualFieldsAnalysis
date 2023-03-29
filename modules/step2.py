@@ -5,6 +5,7 @@ Created on Mon Jul  8 09:28:52 2019
 @author: mathilde.josserand
 """
 import numpy as np
+import pandas as pd
 import sys
 import cv2
 

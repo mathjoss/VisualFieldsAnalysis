@@ -3,6 +3,9 @@
 Created on Tue Jul  2 14:54:18 2019
 
 @author: mathilde.josserand
+
+
+March 2023, update on excel pd read - Mirko Zanon
 """
 import sys
 import pandas as pd
@@ -183,7 +186,7 @@ IDList = animal_ID.split(' ')
 
 # read excel file
 try:
-    input_xls = pd.ExcelFile(excelfile)
+    input_xls = pd.ExcelFile(excelfile, engine='openpyxl')
 except:
     interface.error_excel_file(excelfile)
     sys.exit()
