@@ -33,15 +33,15 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, r
     # check if distance between side and top head is above N standard error (N is defined by the user in thresh)
     trialFrames["distLeftTop"] = calculateDistance(trialFrames['leftheadx'], trialFrames['leftheady'], trialFrames['topheadx'], trialFrames['topheady']) 
     outlier_datapoints = detect_outlier(trialFrames["distLeftTop"], thresh)
-    if len(outlier_datapoints)!=0 :
-        trialFrames["distLeftTop"] = trialFrames["distLeftTop"].replace(outlier_datapoints, np.nan) 
-    
+    if len(outlier_datapoints)!=0
+        trialFrames["distLeftTop"] = trialFrames["distLeftTop"].map(lambda x: np.nan if x in outlier_datapoints else x)
+          
     # same for all distances between tophead, rightHead and leftHead
     trialFrames["distRightTop"]= calculateDistance(trialFrames['rightheadx'], trialFrames['rightheady'], trialFrames['topheadx'], trialFrames['topheady']) 
     outlier_datapoints = detect_outlier(trialFrames["distRightTop"], thresh)
     if len(outlier_datapoints)!=0 :
           # replace outlier value with nan in "distRightTop" column
-          trialFrames["distRightTop"] = trialFrames["distRightTop"].replace(outlier_datapoints, np.nan)
+          trialFrames["distRightTop"] = trialFrames["distRightTop"].map(lambda x: np.nan if x in outlier_datapoints else x)
           
           # replace "distLeftTop" column value with NAN if the "distRightTop" column's value in the same row is NAN
           trialFrames.loc[trialFrames["distRightTop"].isnull(), "distLeftTop"]=np.nan
@@ -50,7 +50,7 @@ def check_errors(cap, trialFrames, txtFile, orientation, thresh, movfix, asym, r
     outlier_datapoints = detect_outlier(trialFrames["distLeftRight"], thresh)
     if len(outlier_datapoints)!=0 :
           # replace outlier value with nan in "distLeftRight" column
-          trialFrames["distLeftRight"] = trialFrames["distLeftRight"].replace(outlier_datapoints, np.nan)
+          trialFrames["distLeftRight"] = trialFrames["distLeftRight"].map(lambda x: np.nan if x in outlier_datapoints else x)
           
           # replace "distLeftTop" column value with NAN if the "distRightTop" column's value is NAN
           trialFrames.loc[trialFrames["distLeftRight"].isnull(), "distLeftTop"]=np.nan
